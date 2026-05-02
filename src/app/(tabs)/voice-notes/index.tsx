@@ -1,19 +1,22 @@
-import React, { useRef, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomSheetLib from '@gorhom/bottom-sheet';
-import { Colors, Spacing, FontSize, FontWeight } from '../../../utils/colors';
-import { FAB } from '../../../components/ui/FAB';
-import { EmptyState } from '../../../components/ui/EmptyState';
+import React, { useCallback, useRef, useState } from 'react';
+import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomSheet from '../../../components/ui/BottomSheet';
-import { VoiceNoteCard } from '../../../components/voice-notes/VoiceNoteCard';
+import { EmptyState } from '../../../components/ui/EmptyState';
+import { FAB } from '../../../components/ui/FAB';
 import { RecordingSheet } from '../../../components/voice-notes/RecordingSheet';
+import { VoiceNoteCard } from '../../../components/voice-notes/VoiceNoteCard';
 import { useVoiceNoteStore, VoiceNoteTag } from '../../../store/voiceNoteStore';
+import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../../utils/colors';
 import { toISOString } from '../../../utils/formatting';
 
 export default function VoiceNotesScreen() {
+  const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const { notes, addNote, deleteNote } = useVoiceNoteStore();
   const sheetRef = useRef<BottomSheetLib>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const handleSave = useCallback((data: { title: string; duration: number; fileUri: string; tag?: VoiceNoteTag }) => {
     addNote({
@@ -35,16 +38,20 @@ export default function VoiceNotesScreen() {
   ), [handleDelete]);
 
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Voice Notes</Text>
-        <Text style={styles.subtitle}>{notes.length} {notes.length === 1 ? 'note' : 'notes'}</Text>
+        <View style={styles.headerRow}>
+          <Text style={[styles.title, { color: colors.text }]}>Voice Notes</Text>
+          <View style={[styles.countBadge, { backgroundColor: colors.surfaceElevated }]}>
+            <Text style={[styles.countText, { color: colors.text }]}>{notes.length}</Text>
+          </View>
+        </View>
       </View>
 
       <FlatList
         data={notes}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 150 }]}
         renderItem={renderItem}
         ListEmptyComponent={
           <EmptyState
@@ -55,9 +62,19 @@ export default function VoiceNotesScreen() {
         }
       />
 
-      <FAB onPress={() => sheetRef.current?.expand()} label="Record" icon="microphone" />
+      {!isSheetOpen && (
+        <FAB onPress={() => {
+          setIsSheetOpen(true);
+          sheetRef.current?.expand();
+        }} label="Record" icon="microphone" />
+      )}
 
-      <BottomSheet ref={sheetRef} title="New Voice Note" snapPoints={['55%', '85%']}>
+      <BottomSheet
+        ref={sheetRef}
+        title="New Voice Note"
+        snapPoints={['55%', '85%']}
+        onClose={() => setIsSheetOpen(false)}
+      >
         <RecordingSheet
           onSave={handleSave}
           onCancel={() => sheetRef.current?.close()}
@@ -68,7 +85,7 @@ export default function VoiceNotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background, paddingTop: Spacing.md },
+  root: { flex: 1, paddingTop: Spacing.md },
   header: {
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.md,
@@ -77,7 +94,14 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     gap: Spacing.sm,
   },
-  title: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, color: Colors.text },
-  subtitle: { fontSize: FontSize.sm, color: Colors.textMuted },
-  list: { paddingTop: Spacing.xs, paddingBottom: 120 },
+  title: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold },
+  subtitle: { fontSize: FontSize.sm },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  countBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: Radius.full,
+  },
+  countText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold },
+  list: { paddingTop: Spacing.xs },
 });

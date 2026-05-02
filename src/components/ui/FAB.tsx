@@ -1,12 +1,13 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, ViewStyle } from 'react-native';
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { Colors, Spacing, FontSize, FontWeight } from '../../utils/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FontSize, FontWeight, Spacing, useThemeColors } from '../../utils/colors';
 
 interface FABProps {
   onPress: () => void;
@@ -18,6 +19,8 @@ interface FABProps {
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export function FAB({ onPress, label = 'Add', icon = 'plus', style }: FABProps) {
+  const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -34,7 +37,12 @@ export function FAB({ onPress, label = 'Add', icon = 'plus', style }: FABProps) 
 
   return (
     <AnimatedTouchable
-      style={[styles.fab, animatedStyle, style]}
+      style={[
+        styles.fab,
+        { bottom: insets.bottom + 32, backgroundColor: colors.accent, shadowColor: colors.accent },
+        animatedStyle,
+        style,
+      ]}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -49,16 +57,13 @@ export function FAB({ onPress, label = 'Add', icon = 'plus', style }: FABProps) 
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    bottom: Spacing.xl + 16,
     right: Spacing.md,
-    backgroundColor: Colors.accent,
     borderRadius: 28,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 4,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs + 2,
-    shadowColor: Colors.accent,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 12,

@@ -1,4 +1,6 @@
-export const Colors = {
+import { useColorScheme, type ColorSchemeName } from 'react-native';
+
+export const DarkColors = {
   // Backgrounds
   background: '#0D0D14',
   surface: '#16161F',
@@ -36,6 +38,61 @@ export const Colors = {
   tabBar: '#111118',
   tabBarBorder: '#1E1E2C',
 } as const;
+
+export const LightColors = {
+  // Backgrounds
+  background: '#F7F8FC',
+  surface: '#FFFFFF',
+  surfaceElevated: '#F1F3F9',
+  surfaceBorder: '#DDE3EE',
+
+  // Accent
+  accent: '#6D5DF6',
+  accentLight: '#7C6FF7',
+  accentDark: '#5146C8',
+
+  // Semantic
+  positive: '#059669',
+  positiveLight: '#10B981',
+  positiveBg: 'rgba(5, 150, 105, 0.12)',
+  negative: '#DC2626',
+  negativeLight: '#EF4444',
+  negativeBg: 'rgba(220, 38, 38, 0.12)',
+  warning: '#D97706',
+
+  // Text
+  text: '#111827',
+  textSecondary: '#475569',
+  textMuted: '#94A3B8',
+  textInverse: '#FFFFFF',
+
+  // UI
+  border: '#DDE3EE',
+  separator: '#E5EAF3',
+  icon: '#64748B',
+  iconActive: '#6D5DF6',
+  overlay: 'rgba(15,23,42,0.36)',
+
+  // Tab bar
+  tabBar: '#FFFFFF',
+  tabBarBorder: '#E5EAF3',
+} as const;
+
+export type ThemeColors = Record<keyof typeof DarkColors, string>;
+
+export const Colors = DarkColors;
+
+export function getThemeColors(colorScheme: ColorSchemeName): ThemeColors {
+  return colorScheme === 'light' ? LightColors : DarkColors;
+}
+
+export function useThemeColors(): ThemeColors {
+  return getThemeColors(useColorScheme());
+}
+
+export function useThemeName(): 'light' | 'dark' {
+  return useColorScheme() === 'light' ? 'light' : 'dark';
+}
 
 export const Spacing = {
   xs: 4,

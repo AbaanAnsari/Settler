@@ -1,32 +1,45 @@
-import React, { useRef, useState, useMemo, useCallback } from 'react';
-import {
-  View, Text, FlatList, StyleSheet,
-  SectionList, TouchableOpacity, ScrollView,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, router } from 'expo-router';
-import BottomSheetLib from '@gorhom/bottom-sheet';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../../utils/colors';
-import { FAB } from '../../../components/ui/FAB';
-import { EmptyState } from '../../../components/ui/EmptyState';
-import BottomSheet from '../../../components/ui/BottomSheet';
-import { ExpenseRow } from '../../../components/events/ExpenseRow';
+import BottomSheetLib from '@gorhom/bottom-sheet';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  BackHandler,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useShallow } from 'zustand/react/shallow';
 import { ExpenseForm } from '../../../components/events/ExpenseForm';
+import { ExpenseRow } from '../../../components/events/ExpenseRow';
 import { SummaryCard } from '../../../components/events/SummaryCard';
-import { useEventStore, Expense } from '../../../store/eventStore';
+import BottomSheet from '../../../components/ui/BottomSheet';
+import { EmptyState } from '../../../components/ui/EmptyState';
+import { FAB } from '../../../components/ui/FAB';
+import { Expense, useEventStore } from '../../../store/eventStore';
+import { selectEventExpenses } from '../../../store/selectors';
 import { computeEventSummary } from '../../../utils/balanceCalc';
-import { formatDate, formatCurrency } from '../../../utils/formatting';
+import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../../utils/colors';
+import { formatCurrency, formatDate } from '../../../utils/formatting';
 
 export default function EventDetailScreen() {
+  const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
-  const { events, addExpense, updateExpense, deleteExpense, getEventExpenses, getEventSummary } = useEventStore();
+
+  const events = useEventStore((state) => state.events);
+  const addExpense = useEventStore((state) => state.addExpense);
+  const updateExpense = useEventStore((state) => state.updateExpense);
 
   const event = events.find((e) => e.id === eventId);
-  const expenses = getEventExpenses(eventId ?? '');
-  const { total, participants, perPerson } = getEventSummary(eventId ?? '');
+  const expenses = useEventStore(useShallow(selectEventExpenses(eventId ?? '')));
+  const { total, participants, perPerson } = useMemo(() => computeEventSummary(expenses), [expenses]);
 
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [formKey, setFormKey] = useState(0);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const sheetRef = useRef<BottomSheetLib>(null);
 
   const sortedExpenses = useMemo(() => {
@@ -48,32 +61,46 @@ export default function EventDetailScreen() {
 
   if (!event) {
     return (
-      <SafeAreaView style={styles.root}>
-        <Text style={{ color: Colors.text, padding: 16 }}>Event not found.</Text>
+      <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+        <Text style={{ color: colors.text, padding: 16 }}>Event not found.</Text>
       </SafeAreaView>
     );
   }
 
   function openAddExpense() {
     setEditingExpense(null);
+    setFormKey(prev => prev + 1);
+    setIsSheetOpen(true);
     sheetRef.current?.expand();
   }
 
   function openEditExpense(expense: Expense) {
     setEditingExpense(expense);
+    setFormKey(prev => prev + 1);
+    setIsSheetOpen(true);
     sheetRef.current?.expand();
   }
 
+  React.useEffect(() => {
+    const onBackPress = () => {
+      router.back();
+      return true;
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, []);
+
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       {/* Header */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.text} />
+          <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.topBarCenter}>
-          <Text style={styles.eventName} numberOfLines={1}>{event.name}</Text>
-          <Text style={styles.eventDate}>{formatDate(event.date)}</Text>
+          <Text style={[styles.eventName, { color: colors.text }]} numberOfLines={1}>{event.name}</Text>
+          <Text style={[styles.eventDate, { color: colors.textMuted }]}>{formatDate(event.date)}</Text>
         </View>
         <View style={{ width: 40 }} />
       </View>
@@ -81,17 +108,17 @@ export default function EventDetailScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Stats row */}
         <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue} adjustsFontSizeToFit numberOfLines={1}>{formatCurrency(total)}</Text>
-            <Text style={styles.statLabel} adjustsFontSizeToFit numberOfLines={1}>Total</Text>
+          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statValue, { color: colors.text }]} adjustsFontSizeToFit numberOfLines={1}>{formatCurrency(total)}</Text>
+            <Text style={[styles.statLabel, { color: colors.textMuted }]} adjustsFontSizeToFit numberOfLines={1}>Total</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue} adjustsFontSizeToFit numberOfLines={1}>{participants.length}</Text>
-            <Text style={styles.statLabel} adjustsFontSizeToFit numberOfLines={1}>People</Text>
+          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statValue, { color: colors.text }]} adjustsFontSizeToFit numberOfLines={1}>{participants.length}</Text>
+            <Text style={[styles.statLabel, { color: colors.textMuted }]} adjustsFontSizeToFit numberOfLines={1}>People</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue} adjustsFontSizeToFit numberOfLines={1}>{formatCurrency(participants.length > 0 ? total / participants.length : 0)}</Text>
-            <Text style={styles.statLabel} adjustsFontSizeToFit numberOfLines={1}>Per person</Text>
+          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statValue, { color: colors.text }]} adjustsFontSizeToFit numberOfLines={1}>{formatCurrency(participants.length > 0 ? total / participants.length : 0)}</Text>
+            <Text style={[styles.statLabel, { color: colors.textMuted }]} adjustsFontSizeToFit numberOfLines={1}>Per person</Text>
           </View>
         </View>
 
@@ -104,8 +131,8 @@ export default function EventDetailScreen() {
 
         {/* Expense Ledger */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Expense Entries</Text>
-          <View style={styles.ledgerCard}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Expense Entries</Text>
+          <View style={[styles.ledgerCard, { backgroundColor: colors.surface }]}>
             {sortedExpenses.length === 0 ? (
               <EmptyState
                 icon="receipt"
@@ -125,21 +152,28 @@ export default function EventDetailScreen() {
           </View>
         </View>
 
-        <View style={{ height: 120 }} />
+        <View style={{ height: insets.bottom + 150 }} />
       </ScrollView>
 
-      <FAB onPress={openAddExpense} label="Add Expense" icon="plus" />
+      {!isSheetOpen && (
+        <FAB onPress={openAddExpense} label="Add Expense" icon="plus" />
+      )}
 
       <BottomSheet
         ref={sheetRef}
         title={editingExpense ? 'Edit Expense' : 'Add Expense'}
-        snapPoints={['75%', '95%']}
+        snapPoints={['86%', '96%']}
+        onClose={() => {
+          setIsSheetOpen(false);
+          setEditingExpense(null);
+        }}
       >
         <ExpenseForm
+          key={formKey}
           eventId={eventId ?? ''}
           suggestedNames={participants}
           onSubmit={handleSubmit}
-          onCancel={() => { sheetRef.current?.close(); setEditingExpense(null); }}
+          onCancel={() => { sheetRef.current?.close(); }}
           initial={editingExpense ?? undefined}
         />
       </BottomSheet>
@@ -148,18 +182,18 @@ export default function EventDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background, paddingTop: Spacing.md },
+  root: { flex: 1, paddingTop: Spacing.md },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
   },
   backBtn: { width: 40, height: 40, alignItems: 'flex-start', justifyContent: 'center' },
   topBarCenter: { flex: 1, alignItems: 'center' },
-  eventName: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.text },
-  eventDate: { fontSize: FontSize.xs, color: Colors.textMuted },
+  eventName: { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  eventDate: { fontSize: FontSize.xs, marginTop: 2 },
   scrollContent: { paddingBottom: Spacing.xl },
   statsRow: {
     flexDirection: 'row',
@@ -169,7 +203,6 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xs,
@@ -177,17 +210,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
   },
-  statValue: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.text },
-  statLabel: { fontSize: FontSize.xs, color: Colors.textMuted },
+  statValue: { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  statLabel: { fontSize: FontSize.xs },
   section: { marginHorizontal: Spacing.md, marginBottom: Spacing.md },
   sectionTitle: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
-    color: Colors.text,
     marginBottom: Spacing.sm,
   },
   ledgerCard: {
-    backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     overflow: 'hidden',
   },

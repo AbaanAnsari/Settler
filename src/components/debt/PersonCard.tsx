@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
+import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
 import { formatCurrency } from '../../utils/formatting';
 import { computePersonBalance } from '../../utils/balanceCalc';
 import type { Person, Transaction } from '../../store/debtStore';
@@ -13,11 +13,12 @@ interface PersonCardProps {
 }
 
 export const PersonCard = memo(function PersonCard({ person, transactions, onPress }: PersonCardProps) {
+  const colors = useThemeColors();
   const { net, youGet, youOwe } = computePersonBalance(transactions);
   const isPositive = net >= 0;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
+    <TouchableOpacity style={[styles.card, { backgroundColor: colors.surface }]} onPress={onPress} activeOpacity={0.75}>
       {/* Left: Avatar + Name */}
       <View style={[styles.avatar, { backgroundColor: person.color + '28' }]}>
         <Text style={[styles.avatarText, { color: person.color }]}>
@@ -26,28 +27,28 @@ export const PersonCard = memo(function PersonCard({ person, transactions, onPre
       </View>
 
       <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>{person.name}</Text>
+        <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>{person.name}</Text>
         <View style={styles.subRow}>
           {youGet > 0 && (
-            <Text style={styles.gets}>↑ {formatCurrency(youGet)}</Text>
+            <Text style={[styles.gets, { color: colors.positive }]}>↑ {formatCurrency(youGet)}</Text>
           )}
           {youOwe > 0 && (
-            <Text style={styles.owes}>↓ {formatCurrency(youOwe)}</Text>
+            <Text style={[styles.owes, { color: colors.negative }]}>↓ {formatCurrency(youOwe)}</Text>
           )}
           {transactions.length === 0 && (
-            <Text style={styles.noTx}>No transactions yet</Text>
+            <Text style={[styles.noTx, { color: colors.textMuted }]}>No transactions yet</Text>
           )}
         </View>
       </View>
 
       {/* Right: Net balance */}
       <View style={styles.netWrap}>
-        <View style={[styles.netBadge, isPositive ? styles.netPosBg : styles.netNegBg]}>
-          <Text style={[styles.netAmount, { color: isPositive ? Colors.positive : Colors.negative }]}>
+        <View style={[styles.netBadge, { backgroundColor: isPositive ? colors.positiveBg : colors.negativeBg }]}>
+          <Text style={[styles.netAmount, { color: isPositive ? colors.positive : colors.negative }]}>
             {net === 0 ? 'Settled' : (isPositive ? '+' : '-') + formatCurrency(Math.abs(net))}
           </Text>
         </View>
-        <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textMuted} style={styles.chevron} />
+        <MaterialCommunityIcons name="chevron-right" size={18} color={colors.textMuted} style={styles.chevron} />
       </View>
     </TouchableOpacity>
   );
@@ -57,7 +58,6 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     padding: Spacing.md,
     marginHorizontal: Spacing.md,
@@ -82,7 +82,6 @@ const styles = StyleSheet.create({
   name: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
-    color: Colors.text,
   },
   subRow: {
     flexDirection: 'row',
@@ -90,17 +89,14 @@ const styles = StyleSheet.create({
   },
   gets: {
     fontSize: FontSize.xs,
-    color: Colors.positive,
     fontWeight: FontWeight.medium,
   },
   owes: {
     fontSize: FontSize.xs,
-    color: Colors.negative,
     fontWeight: FontWeight.medium,
   },
   noTx: {
     fontSize: FontSize.xs,
-    color: Colors.textMuted,
   },
   netWrap: {
     alignItems: 'flex-end',
@@ -112,8 +108,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
   },
-  netPosBg: { backgroundColor: Colors.positiveBg },
-  netNegBg: { backgroundColor: Colors.negativeBg },
   netAmount: {
     fontSize: FontSize.sm,
     fontWeight: FontWeight.bold,

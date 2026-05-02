@@ -22,7 +22,7 @@ export interface Transaction {
   date: string;
 }
 
-interface DebtState {
+export interface DebtState {
   people: Person[];
   transactions: Transaction[];
   isLoaded: boolean;
@@ -36,9 +36,6 @@ interface DebtState {
   addTransaction: (tx: Omit<Transaction, 'id'>) => Promise<void>;
   updateTransaction: (id: string, updates: Partial<Omit<Transaction, 'id'>>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
-
-  getPersonTransactions: (personId: string) => Transaction[];
-  getPersonBalance: (personId: string) => { net: number; youGet: number; youOwe: number };
 }
 
 const AVATAR_COLORS = [
@@ -64,6 +61,7 @@ export const useDebtStore = create<DebtState>((set, get) => ({
       set({ people, transactions, isLoaded: true });
     } catch (e) {
       console.error('Failed to load debt store from DB:', e);
+      set({ isLoaded: true });
     }
   },
 
@@ -139,19 +137,5 @@ export const useDebtStore = create<DebtState>((set, get) => ({
     } catch (e) {
       console.error('Failed to delete transaction:', e);
     }
-  },
-
-  getPersonTransactions: (personId) =>
-    get().transactions.filter((t) => t.personId === personId),
-
-  getPersonBalance: (personId) => {
-    const transactions = get().transactions.filter((t) => t.personId === personId);
-    let youGet = 0;
-    let youOwe = 0;
-    for (const tx of transactions) {
-      if (tx.type === 'give') youGet += tx.amount;
-      else youOwe += tx.amount;
-    }
-    return { net: youGet - youOwe, youGet, youOwe };
   },
 }));

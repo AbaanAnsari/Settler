@@ -1,9 +1,9 @@
 import React, { useState, useEffect, memo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import DateTimePicker from 'react-native-ui-datepicker';
-import dayjs from 'dayjs';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
+import { View, Text, TouchableOpacity, StyleSheet, Keyboard } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
 import type { Expense } from '../../store/eventStore';
+import { DateField } from '../ui/DateField';
 
 interface ExpenseFormProps {
   eventId: string;
@@ -14,13 +14,13 @@ interface ExpenseFormProps {
 }
 
 export const ExpenseForm = memo(function ExpenseForm({ eventId, suggestedNames = [], onSubmit, onCancel, initial }: ExpenseFormProps) {
+  const colors = useThemeColors();
   const [personName, setPersonName] = useState(initial?.personName ?? '');
   const [amount, setAmount] = useState(initial ? String(initial.amount) : '');
   const [reason, setReason] = useState(initial?.reason ?? '');
   const [dateStr, setDateStr] = useState(
     initial ? new Date(initial.date).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA')
   );
-  const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
     setPersonName(initial?.personName ?? '');
@@ -29,27 +29,34 @@ export const ExpenseForm = memo(function ExpenseForm({ eventId, suggestedNames =
     setDateStr(initial ? new Date(initial.date).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA'));
   }, [initial]);
 
-  const isValid = personName.trim() !== '' && amount.trim() !== '' && parseFloat(amount) > 0;
+  const numAmount = Number(amount);
+  const isValid = personName.trim() !== '' && amount.trim() !== '' && !isNaN(numAmount) && numAmount > 0;
 
   function handleSubmit() {
     if (!isValid) return;
+    Keyboard.dismiss();
     onSubmit({
       eventId,
       personName: personName.trim(),
-      amount: parseFloat(amount),
+      amount: numAmount,
       reason: reason.trim(),
       date: new Date(dateStr).toISOString(),
     });
   }
 
+  function handleCancel() {
+    Keyboard.dismiss();
+    onCancel();
+  }
+
   return (
     <View style={styles.container}>
       {/* Person name */}
-      <Text style={styles.label}>Who Paid?</Text>
-      <TextInput
-        style={styles.input}
+      <Text style={[styles.label, { color: colors.textSecondary }]}>Who Paid?</Text>
+      <BottomSheetTextInput
+        style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, color: colors.text }]}
         placeholder="e.g. Arjun"
-        placeholderTextColor={Colors.textMuted}
+        placeholderTextColor={colors.textMuted}
         value={personName}
         onChangeText={setPersonName}
       />
@@ -58,61 +65,40 @@ export const ExpenseForm = memo(function ExpenseForm({ eventId, suggestedNames =
         <View style={styles.suggestions}>
           {suggestedNames.map((n) => (
             <TouchableOpacity key={n} style={styles.chip} onPress={() => setPersonName(n)}>
-              <Text style={styles.chipText}>{n}</Text>
+              <Text style={[styles.chipText, { color: colors.accentLight }]}>{n}</Text>
             </TouchableOpacity>
           ))}
         </View>
       )}
 
-      <Text style={styles.label}>Amount (₹)</Text>
-      <TextInput
-        style={styles.input}
+      <Text style={[styles.label, { color: colors.textSecondary }]}>Amount (₹)</Text>
+      <BottomSheetTextInput
+        style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, color: colors.text }]}
         placeholder="0.00"
-        placeholderTextColor={Colors.textMuted}
+        placeholderTextColor={colors.textMuted}
         value={amount}
         onChangeText={setAmount}
         keyboardType="decimal-pad"
       />
 
-      <Text style={styles.label}>Reason</Text>
-      <TextInput
-        style={styles.input}
+      <Text style={[styles.label, { color: colors.textSecondary }]}>Reason</Text>
+      <BottomSheetTextInput
+        style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, color: colors.text }]}
         placeholder="e.g. Hotel booking"
-        placeholderTextColor={Colors.textMuted}
+        placeholderTextColor={colors.textMuted}
         value={reason}
         onChangeText={setReason}
         maxLength={80}
       />
 
-      <Text style={styles.label}>Date</Text>
-      <TouchableOpacity
-        style={styles.dateInput}
-        onPress={() => setShowPicker(true)}
-      >
-        <Text style={styles.dateText}>{dateStr}</Text>
-      </TouchableOpacity>
-
-      {showPicker && (
-        <View style={styles.calendarContainer}>
-          <DateTimePicker
-            mode="single"
-            date={dateStr}
-            onChange={(params) => {
-              if (params.date) {
-                setDateStr(dayjs(params.date).format('YYYY-MM-DD'));
-                setShowPicker(false);
-              }
-            }}
-          />
-        </View>
-      )}
+      <DateField value={dateStr} onChange={setDateStr} />
 
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
-          <Text style={styles.cancelText}>Cancel</Text>
+        <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: colors.surfaceBorder }]} onPress={handleCancel}>
+          <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.submitBtn, !isValid && styles.disabled]}
+          style={[styles.submitBtn, { backgroundColor: colors.accent }, !isValid && styles.disabled]}
           onPress={handleSubmit}
           disabled={!isValid}
         >
@@ -126,39 +112,29 @@ export const ExpenseForm = memo(function ExpenseForm({ eventId, suggestedNames =
 const styles = StyleSheet.create({
   container: { gap: Spacing.sm },
   label: {
-    fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textSecondary,
+    fontSize: FontSize.xs, fontWeight: FontWeight.semibold,
     textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 4,
   },
   input: {
-    backgroundColor: Colors.surface, borderRadius: Radius.md, borderWidth: 1,
-    borderColor: Colors.surfaceBorder, paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 4, fontSize: FontSize.md, color: Colors.text, marginBottom: 2,
+    borderRadius: Radius.md, borderWidth: 1,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 4, fontSize: FontSize.md, marginBottom: 2,
   },
   suggestions: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, marginBottom: Spacing.xs },
   chip: {
     backgroundColor: 'rgba(124,111,247,0.15)', borderRadius: Radius.full,
     paddingHorizontal: Spacing.sm, paddingVertical: 4,
   },
-  chipText: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.accentLight },
-  dateInput: {
-    backgroundColor: Colors.surface, borderRadius: Radius.md, borderWidth: 1,
-    borderColor: Colors.surfaceBorder, paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 4, marginBottom: 2,
-  },
-  dateText: { fontSize: FontSize.md, color: Colors.text },
-  calendarContainer: {
-    backgroundColor: Colors.surface, borderRadius: Radius.md, marginTop: Spacing.sm,
-    padding: Spacing.sm, overflow: 'hidden',
-  },
+  chipText: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold },
   actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
   cancelBtn: {
     flex: 1, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceBorder, alignItems: 'center',
+    alignItems: 'center',
   },
-  cancelText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textSecondary },
+  cancelText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold },
   submitBtn: {
     flex: 2, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
-    backgroundColor: Colors.accent, alignItems: 'center',
+    alignItems: 'center',
   },
   disabled: { opacity: 0.4 },
   submitText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: '#fff' },

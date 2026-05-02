@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, StyleSheet, TextStyle } from 'react-native';
-import { Colors, Spacing, FontSize, FontWeight } from '../../utils/colors';
+import { Spacing, FontSize, FontWeight, useThemeColors } from '../../utils/colors';
 
 interface BadgeProps {
   value: string;
@@ -11,18 +11,19 @@ interface BadgeProps {
 }
 
 export function Badge({ value, type = 'neutral', size = 'md', style, textStyle }: BadgeProps) {
+  const colors = useThemeColors();
   const bg = {
-    positive: Colors.positiveBg,
-    negative: Colors.negativeBg,
-    neutral: Colors.surfaceElevated,
+    positive: colors.positiveBg,
+    negative: colors.negativeBg,
+    neutral: colors.surfaceElevated,
     accent: 'rgba(124, 111, 247, 0.15)',
   }[type];
 
   const color = {
-    positive: Colors.positive,
-    negative: Colors.negative,
-    neutral: Colors.textSecondary,
-    accent: Colors.accentLight,
+    positive: colors.positive,
+    negative: colors.negative,
+    neutral: colors.textSecondary,
+    accent: colors.accentLight,
   }[type];
 
   const fontSize = { sm: FontSize.xs, md: FontSize.sm, lg: FontSize.md }[size];

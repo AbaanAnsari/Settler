@@ -32,6 +32,7 @@ export const useVoiceNoteStore = create<VoiceNoteState>((set) => ({
       set({ notes, isLoaded: true });
     } catch (e) {
       console.error('Failed to load voice notes from DB:', e);
+      set({ isLoaded: true });
     }
   },
 

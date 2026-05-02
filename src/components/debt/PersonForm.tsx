@@ -1,8 +1,12 @@
-import React, { useState, useEffect, memo } from 'react';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import React, { memo, useEffect, useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform,
+  Keyboard,
+  StyleSheet,
+  Text, TouchableOpacity,
+  View,
 } from 'react-native';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
+import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
 
 interface PersonFormProps {
   onSubmit: (name: string) => void;
@@ -11,6 +15,7 @@ interface PersonFormProps {
 }
 
 export const PersonForm = memo(function PersonForm({ onSubmit, onCancel, initial }: PersonFormProps) {
+  const colors = useThemeColors();
   const [name, setName] = useState(initial?.name ?? '');
 
   useEffect(() => {
@@ -20,17 +25,26 @@ export const PersonForm = memo(function PersonForm({ onSubmit, onCancel, initial
   function handleSubmit() {
     const trimmed = name.trim();
     if (!trimmed) return;
+    Keyboard.dismiss();
     onSubmit(trimmed);
     setName('');
   }
 
+  function handleCancel() {
+    Keyboard.dismiss();
+    onCancel();
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Name</Text>
-      <TextInput
-        style={styles.input}
+      <Text style={[styles.label, { color: colors.textSecondary }]}>Name</Text>
+      <BottomSheetTextInput
+        style={[
+          styles.input,
+          { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, color: colors.text },
+        ]}
         placeholder="e.g. Priya Kapoor"
-        placeholderTextColor={Colors.textMuted}
+        placeholderTextColor={colors.textMuted}
         value={name}
         onChangeText={setName}
         returnKeyType="done"
@@ -39,11 +53,11 @@ export const PersonForm = memo(function PersonForm({ onSubmit, onCancel, initial
       />
 
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
-          <Text style={styles.cancelText}>Cancel</Text>
+        <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: colors.surfaceBorder }]} onPress={handleCancel}>
+          <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.submitBtn, !name.trim() && styles.submitDisabled]}
+          style={[styles.submitBtn, { backgroundColor: colors.accent }, !name.trim() && styles.submitDisabled]}
           onPress={handleSubmit}
           disabled={!name.trim()}
         >
@@ -61,20 +75,16 @@ const styles = StyleSheet.create({
   label: {
     fontSize: FontSize.sm,
     fontWeight: FontWeight.semibold,
-    color: Colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 2,
   },
   input: {
-    backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 4,
     fontSize: FontSize.md,
-    color: Colors.text,
     marginBottom: Spacing.md,
   },
   actions: {
@@ -86,19 +96,16 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: Spacing.sm + 4,
     borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceBorder,
     alignItems: 'center',
   },
   cancelText: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
-    color: Colors.textSecondary,
   },
   submitBtn: {
     flex: 2,
     paddingVertical: Spacing.sm + 4,
     borderRadius: Radius.md,
-    backgroundColor: Colors.accent,
     alignItems: 'center',
   },
   submitDisabled: {

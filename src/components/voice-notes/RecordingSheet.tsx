@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Keyboard } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
+import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
 import type { VoiceNoteTag } from '../../store/voiceNoteStore';
 
 interface RecordingSheetProps {
@@ -12,12 +13,21 @@ interface RecordingSheetProps {
 const TAGS: VoiceNoteTag[] = ['Expense', 'Reminder', 'General'];
 
 export function RecordingSheet({ onSave, onCancel }: RecordingSheetProps) {
+  const colors = useThemeColors();
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
   const [title, setTitle] = useState('');
   const [tag, setTag] = useState<VoiceNoteTag>('General');
   const [recorded, setRecorded] = useState(false);
   const timerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
   function startRecording() {
     // In a real app, use expo-audio here
@@ -29,8 +39,19 @@ export function RecordingSheet({ onSave, onCancel }: RecordingSheetProps) {
 
   function stopRecording() {
     if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = null;
     setIsRecording(false);
     setRecorded(true);
+  }
+
+  function handleCancel() {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setIsRecording(false);
+    Keyboard.dismiss();
+    onCancel();
   }
 
   function handleSave() {
@@ -38,6 +59,7 @@ export function RecordingSheet({ onSave, onCancel }: RecordingSheetProps) {
       Alert.alert('Title required', 'Please add a title for your note.');
       return;
     }
+    Keyboard.dismiss();
     onSave({
       title: title.trim(),
       duration,
@@ -57,22 +79,26 @@ export function RecordingSheet({ onSave, onCancel }: RecordingSheetProps) {
       {/* Recording visualizer */}
       <View style={styles.visualizer}>
         {isRecording ? (
-          <View style={styles.recordingDot} />
+          <View style={[styles.recordingDot, { backgroundColor: colors.negative, shadowColor: colors.negative }]} />
         ) : (
           <MaterialCommunityIcons
             name={recorded ? 'microphone-outline' : 'microphone'}
             size={40}
-            color={recorded ? Colors.positive : Colors.textMuted}
+            color={recorded ? colors.positive : colors.textMuted}
           />
         )}
-        <Text style={styles.timer}>{formatDur(duration)}</Text>
-        {isRecording && <Text style={styles.recordingLabel}>Recording...</Text>}
-        {recorded && !isRecording && <Text style={styles.doneLabel}>Recording complete</Text>}
+        <Text style={[styles.timer, { color: colors.text }]}>{formatDur(duration)}</Text>
+        {isRecording && <Text style={[styles.recordingLabel, { color: colors.negative }]}>Recording...</Text>}
+        {recorded && !isRecording && <Text style={[styles.doneLabel, { color: colors.positive }]}>Recording complete</Text>}
       </View>
 
       {/* Record / Stop button */}
       <TouchableOpacity
-        style={[styles.recordBtn, isRecording && styles.stopBtn]}
+        style={[
+          styles.recordBtn,
+          { backgroundColor: colors.accent, shadowColor: colors.accent },
+          isRecording && { backgroundColor: colors.negative, shadowColor: colors.negative },
+        ]}
         onPress={isRecording ? stopRecording : startRecording}
       >
         <MaterialCommunityIcons
@@ -86,11 +112,11 @@ export function RecordingSheet({ onSave, onCancel }: RecordingSheetProps) {
       {/* Title */}
       {recorded && (
         <>
-          <Text style={styles.label}>Title</Text>
-          <TextInput
-            style={styles.input}
+          <Text style={[styles.label, { color: colors.textSecondary }]}>Title</Text>
+          <BottomSheetTextInput
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, color: colors.text }]}
             placeholder="Name your note..."
-            placeholderTextColor={Colors.textMuted}
+            placeholderTextColor={colors.textMuted}
             value={title}
             onChangeText={setTitle}
             autoFocus
@@ -98,25 +124,29 @@ export function RecordingSheet({ onSave, onCancel }: RecordingSheetProps) {
           />
 
           {/* Tag */}
-          <Text style={styles.label}>Tag</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>Tag</Text>
           <View style={styles.tagRow}>
             {TAGS.map((t) => (
               <TouchableOpacity
                 key={t}
-                style={[styles.tagChip, tag === t && styles.tagChipActive]}
+                style={[
+                  styles.tagChip,
+                  { backgroundColor: colors.surfaceBorder },
+                  tag === t && { backgroundColor: colors.accent },
+                ]}
                 onPress={() => setTag(t)}
               >
-                <Text style={[styles.tagChipText, tag === t && styles.tagChipTextActive]}>{t}</Text>
+                <Text style={[styles.tagChipText, { color: colors.textSecondary }, tag === t && styles.tagChipTextActive]}>{t}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
           {/* Actions */}
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
-              <Text style={styles.cancelText}>Discard</Text>
+            <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: colors.surfaceBorder }]} onPress={handleCancel}>
+              <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Discard</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+            <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.positive }]} onPress={handleSave}>
               <Text style={styles.saveText}>Save Note</Text>
             </TouchableOpacity>
           </View>
@@ -124,8 +154,8 @@ export function RecordingSheet({ onSave, onCancel }: RecordingSheetProps) {
       )}
 
       {!recorded && (
-        <TouchableOpacity style={styles.cancelBtnSolo} onPress={onCancel}>
-          <Text style={styles.cancelText}>Cancel</Text>
+        <TouchableOpacity style={[styles.cancelBtnSolo, { backgroundColor: colors.surfaceBorder }]} onPress={handleCancel}>
+          <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -141,52 +171,49 @@ const styles = StyleSheet.create({
   },
   recordingDot: {
     width: 60, height: 60, borderRadius: 30,
-    backgroundColor: Colors.negative,
-    shadowColor: Colors.negative, shadowOffset: { width: 0, height: 0 },
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6, shadowRadius: 16, elevation: 8,
   },
-  timer: { fontSize: FontSize.xxxl, fontWeight: FontWeight.bold, color: Colors.text, fontVariant: ['tabular-nums'] },
-  recordingLabel: { fontSize: FontSize.sm, color: Colors.negative, fontWeight: FontWeight.medium },
-  doneLabel: { fontSize: FontSize.sm, color: Colors.positive, fontWeight: FontWeight.medium },
+  timer: { fontSize: FontSize.xxxl, fontWeight: FontWeight.bold, fontVariant: ['tabular-nums'] },
+  recordingLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
+  doneLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   recordBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,
-    backgroundColor: Colors.accent, borderRadius: Radius.full,
+    borderRadius: Radius.full,
     paddingVertical: Spacing.md, marginHorizontal: Spacing.lg,
-    shadowColor: Colors.accent, shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4, shadowRadius: 10, elevation: 6,
   },
-  stopBtn: { backgroundColor: Colors.negative, shadowColor: Colors.negative },
   recordBtnText: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: '#fff' },
   label: {
-    fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textSecondary,
+    fontSize: FontSize.xs, fontWeight: FontWeight.semibold,
     textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 4,
   },
   input: {
-    backgroundColor: Colors.surface, borderRadius: Radius.md, borderWidth: 1,
-    borderColor: Colors.surfaceBorder, paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 4, fontSize: FontSize.md, color: Colors.text,
+    borderRadius: Radius.md, borderWidth: 1,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 4, fontSize: FontSize.md,
   },
   tagRow: { flexDirection: 'row', gap: Spacing.sm },
   tagChip: {
     flex: 1, paddingVertical: Spacing.sm, borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceBorder, alignItems: 'center',
+    alignItems: 'center',
   },
-  tagChipActive: { backgroundColor: Colors.accent },
-  tagChipText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textSecondary },
+  tagChipText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold },
   tagChipTextActive: { color: '#fff' },
   actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
   cancelBtn: {
     flex: 1, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceBorder, alignItems: 'center',
+    alignItems: 'center',
   },
   cancelBtnSolo: {
     paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceBorder, alignItems: 'center',
+    alignItems: 'center',
   },
-  cancelText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textSecondary },
+  cancelText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold },
   saveBtn: {
     flex: 2, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
-    backgroundColor: Colors.positive, alignItems: 'center',
+    alignItems: 'center',
   },
   saveText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: '#fff' },
 });

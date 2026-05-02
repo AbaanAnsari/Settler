@@ -15,6 +15,11 @@ export function formatDate(date: string): string {
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+export function formatDateFull(date: string): string {
+  const d = new Date(date);
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 export function formatDateShort(date: string): string {
   const d = new Date(date);
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });

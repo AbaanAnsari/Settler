@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
+import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
 import { formatCurrency } from '../../utils/formatting';
 import type { PersonEventSummary } from '../../utils/balanceCalc';
 
@@ -18,12 +18,13 @@ function getAvatarColor(name: string): string {
 }
 
 export const SummaryCard = memo(function SummaryCard({ summaries, total }: SummaryCardProps) {
+  const colors = useThemeColors();
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Balance Summary</Text>
+    <View style={[styles.card, { backgroundColor: colors.surface }]}>
+      <View style={[styles.header, { borderBottomColor: colors.separator }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Balance Summary</Text>
         <View style={styles.totalBadge}>
-          <Text style={styles.totalText}>Total {formatCurrency(total)}</Text>
+          <Text style={[styles.totalText, { color: colors.accentLight }]}>Total {formatCurrency(total)}</Text>
         </View>
       </View>
 
@@ -31,18 +32,18 @@ export const SummaryCard = memo(function SummaryCard({ summaries, total }: Summa
         const color = getAvatarColor(s.personName);
         const isPositive = s.net >= 0;
         return (
-          <View key={s.personName} style={styles.row}>
+          <View key={s.personName} style={[styles.row, { borderBottomColor: colors.separator }]}>
             <View style={[styles.avatar, { backgroundColor: color + '28' }]}>
               <Text style={[styles.avatarText, { color }]}>
                 {s.personName.charAt(0).toUpperCase()}
               </Text>
             </View>
             <View style={styles.info}>
-              <Text style={styles.name}>{s.personName}</Text>
-              <Text style={styles.paid}>Paid {formatCurrency(s.totalPaid)} · Share {formatCurrency(s.equalShare)}</Text>
+              <Text style={[styles.name, { color: colors.text }]}>{s.personName}</Text>
+              <Text style={[styles.paid, { color: colors.textMuted }]}>Paid {formatCurrency(s.totalPaid)} · Share {formatCurrency(s.equalShare)}</Text>
             </View>
-            <View style={[styles.netBadge, isPositive ? styles.posBg : styles.negBg]}>
-              <Text style={[styles.netText, { color: isPositive ? Colors.positive : Colors.negative }]}>
+            <View style={[styles.netBadge, { backgroundColor: isPositive ? colors.positiveBg : colors.negativeBg }]}>
+              <Text style={[styles.netText, { color: isPositive ? colors.positive : colors.negative }]}>
                 {s.net === 0 ? 'Settled' : (isPositive ? '+' : '') + formatCurrency(s.net)}
               </Text>
             </View>
@@ -55,9 +56,7 @@ export const SummaryCard = memo(function SummaryCard({ summaries, total }: Summa
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
-    marginHorizontal: Spacing.md,
     overflow: 'hidden',
   },
   header: {
@@ -66,12 +65,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.separator,
   },
   headerTitle: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
-    color: Colors.text,
   },
   totalBadge: {
     backgroundColor: 'rgba(124, 111, 247, 0.12)',
@@ -82,7 +79,6 @@ const styles = StyleSheet.create({
   totalText: {
     fontSize: FontSize.xs,
     fontWeight: FontWeight.semibold,
-    color: Colors.accentLight,
   },
   row: {
     flexDirection: 'row',
@@ -90,21 +86,18 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     gap: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.separator,
   },
   avatar: {
     width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   info: { flex: 1, gap: 3 },
-  name: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.text },
-  paid: { fontSize: FontSize.xs, color: Colors.textMuted },
+  name: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold },
+  paid: { fontSize: FontSize.xs },
   netBadge: {
     borderRadius: Radius.sm,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
   },
-  posBg: { backgroundColor: Colors.positiveBg },
-  negBg: { backgroundColor: Colors.negativeBg },
   netText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
 });

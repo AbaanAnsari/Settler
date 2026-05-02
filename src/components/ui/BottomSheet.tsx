@@ -1,11 +1,13 @@
-import React, { forwardRef, ReactNode, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { forwardRef, ReactNode, useCallback, useImperativeHandle, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
 import BottomSheetLib, {
-  BottomSheetView,
+  BottomSheetScrollView,
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
 
 interface BottomSheetProps {
   snapPoints?: (string | number)[];
@@ -16,6 +18,12 @@ interface BottomSheetProps {
 
 const BottomSheet = forwardRef<BottomSheetLib, BottomSheetProps>(
   ({ snapPoints = ['55%', '90%'], title, children, onClose }, ref) => {
+    const insets = useSafeAreaInsets();
+    const colors = useThemeColors();
+    const bottomSheetRef = useRef<BottomSheetLib>(null);
+
+    useImperativeHandle(ref, () => bottomSheetRef.current as BottomSheetLib);
+
     const renderBackdrop = useCallback(
       (props: BottomSheetBackdropProps) => (
         <BottomSheetBackdrop
@@ -30,29 +38,48 @@ const BottomSheet = forwardRef<BottomSheetLib, BottomSheetProps>(
 
     return (
       <BottomSheetLib
-        ref={ref}
+        ref={bottomSheetRef}
         index={-1}
         snapPoints={snapPoints}
         enablePanDownToClose
         backdropComponent={renderBackdrop}
-        backgroundStyle={styles.background}
-        handleIndicatorStyle={styles.handle}
-        keyboardBehavior="extend"
+        backgroundStyle={[styles.background, { backgroundColor: colors.surfaceElevated }]}
+        handleIndicatorStyle={[styles.handle, { backgroundColor: colors.surfaceBorder }]}
+        keyboardBehavior="interactive"
         keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustResize"
+        onChange={(index) => {
+          if (index === -1) {
+            Keyboard.dismiss();
+            onClose?.();
+          }
+        }}
       >
-        <BottomSheetView style={styles.content}>
+        <BottomSheetScrollView
+          style={styles.content}
+          contentContainerStyle={[
+            styles.contentContainer,
+            { paddingBottom: insets.bottom + Spacing.xxl },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          showsVerticalScrollIndicator={false}
+        >
           {title || onClose ? (
             <View style={styles.header}>
-              {title ? <Text style={styles.title}>{title}</Text> : <View />}
+              {title ? <Text style={[styles.title, { color: colors.text }]}>{title}</Text> : <View />}
               {onClose ? (
-                <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                  <Text style={styles.closeText}>✕</Text>
+                <TouchableOpacity
+                  onPress={() => bottomSheetRef.current?.close()}
+                  style={[styles.closeBtn, { backgroundColor: colors.surfaceBorder }]}
+                >
+                  <MaterialCommunityIcons name="close" size={18} color={colors.textSecondary} />
                 </TouchableOpacity>
               ) : null}
             </View>
           ) : null}
           {children}
-        </BottomSheetView>
+        </BottomSheetScrollView>
       </BottomSheetLib>
     );
   }
@@ -63,19 +90,19 @@ export default BottomSheet;
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: Colors.surfaceElevated,
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
   },
   handle: {
-    backgroundColor: Colors.surfaceBorder,
     width: 40,
     height: 4,
   },
   content: {
     flex: 1,
     paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.xl,
+  },
+  contentContainer: {
+    flexGrow: 1,
   },
   header: {
     flexDirection: 'row',
@@ -87,19 +114,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xl,
     fontWeight: FontWeight.bold,
-    color: Colors.text,
   },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.surfaceBorder,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  closeText: {
-    color: Colors.textSecondary,
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
   },
 });

@@ -1,7 +1,7 @@
 import React, { useState, useRef, memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
+import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
 import { formatDuration, formatRelativeDate } from '../../utils/formatting';
 import type { VoiceNote, VoiceNoteTag } from '../../store/voiceNoteStore';
 
@@ -10,13 +10,8 @@ interface VoiceNoteCardProps {
   onDelete: () => void;
 }
 
-const TAG_COLORS: Record<VoiceNoteTag, { bg: string; text: string }> = {
-  Expense: { bg: Colors.negativeBg, text: Colors.negative },
-  Reminder: { bg: 'rgba(251, 191, 36, 0.12)', text: Colors.warning },
-  General: { bg: Colors.surfaceElevated, text: Colors.textSecondary },
-};
-
 export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDelete }: VoiceNoteCardProps) {
+  const colors = useThemeColors();
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -42,16 +37,21 @@ export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDelete }: Voi
   }
 
   const barCount = 24;
-  const tagStyle = note.tag ? TAG_COLORS[note.tag] : null;
+  const tagStyle: Record<VoiceNoteTag, { bg: string; text: string }> = {
+    Expense: { bg: colors.negativeBg, text: colors.negative },
+    Reminder: { bg: 'rgba(251, 191, 36, 0.12)', text: colors.warning },
+    General: { bg: colors.surfaceElevated, text: colors.textSecondary },
+  };
+  const activeTagStyle = note.tag ? tagStyle[note.tag] : null;
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.surface }]}>
       {/* Play button */}
       <TouchableOpacity style={styles.playBtn} onPress={handlePlayPause}>
         <MaterialCommunityIcons
           name={isPlaying ? 'pause' : 'play'}
           size={22}
-          color={Colors.accent}
+          color={colors.accent}
         />
       </TouchableOpacity>
 
@@ -66,23 +66,23 @@ export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDelete }: Voi
                 key={i}
                 style={[
                   styles.bar,
-                  { height, backgroundColor: filled ? Colors.accent : Colors.surfaceBorder },
+                  { height, backgroundColor: filled ? colors.accent : colors.surfaceBorder },
                 ]}
               />
             );
           })}
         </View>
         <View style={styles.meta}>
-          <Text style={styles.title} numberOfLines={1}>{note.title}</Text>
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{note.title}</Text>
           <View style={styles.metaRow}>
-            <Text style={styles.duration}>{formatDuration(note.duration)}</Text>
-            <Text style={styles.dot}>·</Text>
-            <Text style={styles.date}>{formatRelativeDate(note.date)}</Text>
-            {tagStyle && note.tag ? (
+            <Text style={[styles.duration, { color: colors.textMuted }]}>{formatDuration(note.duration)}</Text>
+            <Text style={[styles.dot, { color: colors.textMuted }]}>·</Text>
+            <Text style={[styles.date, { color: colors.textMuted }]}>{formatRelativeDate(note.date)}</Text>
+            {activeTagStyle && note.tag ? (
               <>
-                <Text style={styles.dot}>·</Text>
-                <View style={[styles.tag, { backgroundColor: tagStyle.bg }]}>
-                  <Text style={[styles.tagText, { color: tagStyle.text }]}>{note.tag}</Text>
+                <Text style={[styles.dot, { color: colors.textMuted }]}>·</Text>
+                <View style={[styles.tag, { backgroundColor: activeTagStyle.bg }]}>
+                  <Text style={[styles.tagText, { color: activeTagStyle.text }]}>{note.tag}</Text>
                 </View>
               </>
             ) : null}
@@ -92,7 +92,7 @@ export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDelete }: Voi
 
       {/* Delete */}
       <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
-        <MaterialCommunityIcons name="trash-can-outline" size={18} color={Colors.textMuted} />
+        <MaterialCommunityIcons name="trash-can-outline" size={18} color={colors.textMuted} />
       </TouchableOpacity>
     </View>
   );
@@ -102,7 +102,6 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     padding: Spacing.md,
     marginHorizontal: Spacing.md,
@@ -129,11 +128,11 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   meta: { gap: 2 },
-  title: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.text },
+  title: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  duration: { fontSize: FontSize.xs, color: Colors.textMuted },
-  dot: { fontSize: FontSize.xs, color: Colors.textMuted },
-  date: { fontSize: FontSize.xs, color: Colors.textMuted },
+  duration: { fontSize: FontSize.xs },
+  dot: { fontSize: FontSize.xs },
+  date: { fontSize: FontSize.xs },
   tag: {
     borderRadius: Radius.full,
     paddingHorizontal: 6,

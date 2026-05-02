@@ -1,20 +1,25 @@
-import React, { useRef, useState, useMemo, useCallback } from 'react';
-import {
-  View, Text, FlatList, StyleSheet,
-  TouchableOpacity, Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, router } from 'expo-router';
-import BottomSheetLib from '@gorhom/bottom-sheet';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../../utils/colors';
-import { FAB } from '../../../components/ui/FAB';
-import { EmptyState } from '../../../components/ui/EmptyState';
-import BottomSheet from '../../../components/ui/BottomSheet';
-import { TransactionRow } from '../../../components/debt/TransactionRow';
+import BottomSheetLib from '@gorhom/bottom-sheet';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  Alert,
+  FlatList, StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useShallow } from 'zustand/react/shallow';
 import { TransactionForm } from '../../../components/debt/TransactionForm';
-import { useDebtStore, Transaction } from '../../../store/debtStore';
-import { computePersonBalance, computeRunningBalance } from '../../../utils/balanceCalc';
+import { TransactionRow } from '../../../components/debt/TransactionRow';
+import BottomSheet from '../../../components/ui/BottomSheet';
+import { EmptyState } from '../../../components/ui/EmptyState';
+import { FAB } from '../../../components/ui/FAB';
+import { Transaction, useDebtStore } from '../../../store/debtStore';
+import { selectPersonTransactions } from '../../../store/selectors';
+import { computePersonBalance, computeRunningBalance, TransactionWithBalance } from '../../../utils/balanceCalc';
+import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../../utils/colors';
 import { formatCurrency } from '../../../utils/formatting';
 
 type FilterType = 'all' | 'give' | 'take';
@@ -22,33 +27,47 @@ type SortType = 'date' | 'amount';
 
 export default function PersonLedgerScreen() {
   const { personId } = useLocalSearchParams<{ personId: string }>();
-  const { people, getPersonTransactions, addTransaction, updateTransaction, deleteTransaction } = useDebtStore();
+  const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
+
+  const people = useDebtStore((state) => state.people);
+  const addTransaction = useDebtStore((state) => state.addTransaction);
+  const updateTransaction = useDebtStore((state) => state.updateTransaction);
+  const deleteTransaction = useDebtStore((state) => state.deleteTransaction);
 
   const person = people.find((p) => p.id === personId);
-  const rawTransactions = getPersonTransactions(personId ?? '');
+
+  // ✅ safer selector usage
+  const rawTransactions = useDebtStore(
+    useShallow((state) => selectPersonTransactions(personId ?? '')(state))
+  );
 
   const [filter, setFilter] = useState<FilterType>('all');
   const [sort, setSort] = useState<SortType>('date');
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  const [formKey, setFormKey] = useState(0);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const txSheetRef = useRef<BottomSheetLib>(null);
 
   const { net, youGet, youOwe } = computePersonBalance(rawTransactions);
-  const withBalance = computeRunningBalance(rawTransactions);
+  const withBalance = useMemo(() => computeRunningBalance(rawTransactions), [rawTransactions]);
 
-  // Filter & Sort
   const filtered = useMemo(() => {
-    let result = filter === 'all' ? withBalance
-      : withBalance.filter((t) => t.type === (filter === 'give' ? 'give' : 'take'));
+    let result = filter === 'all'
+      ? withBalance
+      : withBalance.filter((t) => t.type === filter);
 
     result = [...result].sort((a, b) => {
       if (sort === 'date') return new Date(b.date).getTime() - new Date(a.date).getTime();
       return b.amount - a.amount;
     });
+
     return result;
   }, [withBalance, filter, sort]);
 
   const netPositive = net >= 0;
+  const personName = person?.name ?? 'this person';
 
   const handleTxSubmit = useCallback((data: Omit<Transaction, 'id'>) => {
     if (editingTx) {
@@ -60,127 +79,173 @@ export default function PersonLedgerScreen() {
     setEditingTx(null);
   }, [editingTx, updateTransaction, addTransaction]);
 
-  const renderItem = useCallback(({ item, index }: { item: any, index: number }) => (
+  const handleSettle = useCallback(() => {
+    if (!person) return;
+    Alert.alert(
+      'Settle Up',
+      `Mark all transactions with ${personName} as settled?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Settle',
+          style: 'destructive',
+          onPress: () => rawTransactions.forEach((t) => deleteTransaction(t.id)),
+        },
+      ]
+    );
+  }, [deleteTransaction, person, personName, rawTransactions]);
+
+  const openAddTx = useCallback(() => {
+    setEditingTx(null);
+    setFormKey((prev) => prev + 1);
+    setIsSheetOpen(true);
+    txSheetRef.current?.expand();
+  }, []);
+
+  const openEditTx = useCallback((tx: Transaction) => {
+    setEditingTx(tx);
+    setFormKey((prev) => prev + 1);
+    setIsSheetOpen(true);
+    txSheetRef.current?.expand();
+  }, []);
+
+  const renderItem = useCallback(({ item, index }: { item: TransactionWithBalance; index: number }) => (
     <TransactionRow
       tx={item}
       onPress={() => openEditTx(item)}
       isLast={index === filtered.length - 1}
     />
-  ), [filtered.length]);
+  ), [filtered.length, openEditTx]);
 
   if (!person) {
     return (
-      <SafeAreaView style={styles.root}>
-        <Text style={{ color: Colors.text, padding: 16 }}>Person not found.</Text>
+      <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={[styles.personName, { color: colors.text }]}>Person not found</Text>
+          <View style={{ width: 40 }} />
+        </View>
       </SafeAreaView>
     );
   }
 
-  function handleSettle() {
-    Alert.alert('Settle Up', `Mark all transactions with ${person!.name} as settled? This will clear the balance.`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Settle', style: 'destructive',
-        onPress: () => {
-          rawTransactions.forEach((t) => deleteTransaction(t.id));
-        },
-      },
-    ]);
-  }
-
-  function openAddTx() {
-    setEditingTx(null);
-    txSheetRef.current?.expand();
-  }
-
-  function openEditTx(tx: Transaction) {
-    setEditingTx(tx);
-    txSheetRef.current?.expand();
-  }
-
   return (
-    <SafeAreaView style={styles.root}>
-      {/* Back + Title */}
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+      {/* Header */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.text} />
+          <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.personName}>{person.name}</Text>
+        <Text style={[styles.personName, { color: colors.text }]}>{person.name}</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Balance Hero */}
+      {/* Hero */}
       <View style={styles.hero}>
-        <Text style={styles.netLabel}>
+        <Text style={[styles.netLabel, { color: colors.textSecondary }]}>
           {net === 0 ? 'All settled up' : netPositive ? 'Owes you' : 'You owe'}
         </Text>
-        <Text style={[styles.netAmount, { color: netPositive ? Colors.positive : Colors.negative }]}>
+        <Text style={[styles.netAmount, { color: netPositive ? colors.positive : colors.negative }]}>
           {net === 0 ? '₹0' : formatCurrency(Math.abs(net))}
         </Text>
         <View style={styles.heroRow}>
-          <Text style={styles.heroSub}>↑ {formatCurrency(youGet)} given</Text>
-          <Text style={styles.heroDot}>·</Text>
-          <Text style={styles.heroSub}>↓ {formatCurrency(youOwe)} received</Text>
+          <View style={[styles.heroStat, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.heroStatLabel, { color: colors.textSecondary }]}>You get</Text>
+            <Text style={[styles.heroStatValue, { color: colors.positive }]}>{formatCurrency(youGet)}</Text>
+          </View>
+          <View style={[styles.heroStat, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.heroStatLabel, { color: colors.textSecondary }]}>You owe</Text>
+            <Text style={[styles.heroStatValue, { color: colors.negative }]}>{formatCurrency(youOwe)}</Text>
+          </View>
         </View>
+
         {rawTransactions.length > 0 && (
-          <TouchableOpacity style={styles.settleBtn} onPress={handleSettle}>
+          <TouchableOpacity style={[styles.settleBtn, { backgroundColor: colors.accent }]} onPress={handleSettle}>
             <Text style={styles.settleBtnText}>Settle Up</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Filters + Sort */}
+      {/* Filters */}
       <View style={styles.controlRow}>
-        <View style={styles.filterRow}>
+        <View style={[styles.filterRow, { backgroundColor: colors.surface }]}>
           {(['all', 'give', 'take'] as FilterType[]).map((f) => (
             <TouchableOpacity
               key={f}
-              style={[styles.filterChip, filter === f && styles.filterChipActive]}
+              style={[styles.filterChip, filter === f && styles.filterChipActive, filter === f && { backgroundColor: colors.accent }]}
               onPress={() => setFilter(f)}
             >
-              <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>
+              <Text style={[styles.filterText, { color: colors.textSecondary }, filter === f && styles.filterTextActive]}>
                 {f === 'all' ? 'All' : f === 'give' ? 'Given' : 'Taken'}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
-        <TouchableOpacity
-          style={styles.sortBtn}
-          onPress={() => setSort(sort === 'date' ? 'amount' : 'date')}
-        >
-          <MaterialCommunityIcons name="sort" size={16} color={Colors.textSecondary} />
-          <Text style={styles.sortText}>{sort === 'date' ? 'Date' : 'Amount'}</Text>
-        </TouchableOpacity>
+        <View style={styles.sortRow}>
+          {(['date', 'amount'] as SortType[]).map((s) => (
+            <TouchableOpacity
+              key={s}
+              style={[
+                styles.sortChip,
+                { borderColor: colors.surfaceBorder },
+                sort === s && { backgroundColor: colors.surfaceElevated, borderColor: colors.accentDark },
+              ]}
+              onPress={() => setSort(s)}
+            >
+              <Text style={[styles.sortText, { color: colors.textSecondary }, sort === s && { color: colors.accentLight }]}>
+                {s === 'date' ? 'Recent first' : 'Amount high'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
-      {/* Transaction List */}
-      <View style={styles.listCard}>
+      {/* List */}
+      <View style={[styles.listCard, { backgroundColor: colors.surface }]}>
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 120 }}
           renderItem={renderItem}
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + 150,
+          }}
           ListEmptyComponent={
             <EmptyState
               icon="swap-horizontal"
               title="No transactions"
-              subtitle="Tap + to add a give or take."
+              subtitle="Tap + to add one"
             />
           }
         />
       </View>
 
-      <FAB onPress={openAddTx} label="Add Transaction" icon="plus" />
+      {!isSheetOpen && (
+        <FAB
+          onPress={openAddTx}
+          label="Add"
+          icon="plus"
+        />
+      )}
 
+      {/* Bottom Sheet */}
       <BottomSheet
         ref={txSheetRef}
         title={editingTx ? 'Edit Transaction' : 'Add Transaction'}
-        snapPoints={['70%', '90%']}
+        snapPoints={['82%', '96%']}
+        onClose={() => {
+          setIsSheetOpen(false);
+          setEditingTx(null);
+        }}
       >
         <TransactionForm
+          key={formKey}
           personId={personId ?? ''}
           onSubmit={handleTxSubmit}
-          onCancel={() => { txSheetRef.current?.close(); setEditingTx(null); }}
+          onCancel={() => {
+            txSheetRef.current?.close();
+          }}
           initial={editingTx ?? undefined}
         />
       </BottomSheet>
@@ -189,7 +254,9 @@ export default function PersonLedgerScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background, paddingTop: Spacing.md },
+  root: {
+    flex: 1,
+  },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -197,64 +264,103 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
   },
-  backBtn: { width: 40, height: 40, alignItems: 'flex-start', justifyContent: 'center' },
-  personName: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.text },
+  backBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+  },
+  personName: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
+  },
   hero: {
     alignItems: 'center',
-    paddingVertical: Spacing.xl,
-    paddingHorizontal: Spacing.md,
-    gap: Spacing.xs,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.lg,
   },
-  netLabel: { fontSize: FontSize.sm, color: Colors.textSecondary, fontWeight: FontWeight.medium },
-  netAmount: { fontSize: FontSize.xxxl, fontWeight: FontWeight.bold },
-  heroRow: { flexDirection: 'row', gap: 6, marginTop: 4 },
-  heroSub: { fontSize: FontSize.xs, color: Colors.textMuted },
-  heroDot: { fontSize: FontSize.xs, color: Colors.textMuted },
-  settleBtn: {
-    marginTop: Spacing.sm,
-    backgroundColor: Colors.accent,
-    borderRadius: Radius.full,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+  netLabel: {
+    fontSize: FontSize.sm,
   },
-  settleBtnText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: '#fff' },
-  controlRow: {
+  netAmount: {
+    fontSize: FontSize.xxxl,
+    fontWeight: FontWeight.bold,
+  },
+  heroRow: {
     flexDirection: 'row',
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  heroStat: {
+    flex: 1,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     alignItems: 'center',
+  },
+  heroStatLabel: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.semibold,
+    marginBottom: 4,
+  },
+  heroStatValue: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
+  },
+  heroSub: {
+    fontSize: FontSize.xs,
+  },
+  settleBtn: {
+    marginTop: Spacing.lg,
+    borderRadius: 999,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  settleBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  controlRow: {
     paddingHorizontal: Spacing.md,
     marginBottom: Spacing.sm,
-    gap: Spacing.sm,
   },
   filterRow: {
-    flex: 1,
     flexDirection: 'row',
-    backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     padding: 4,
   },
+  sortRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
   filterChip: {
     flex: 1,
+    alignItems: 'center',
     paddingVertical: 6,
+  },
+  filterChipActive: {
     borderRadius: Radius.sm,
-    alignItems: 'center',
   },
-  filterChipActive: { backgroundColor: Colors.accent },
-  filterText: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textSecondary },
-  filterTextActive: { color: '#fff' },
-  sortBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.sm,
+  filterText: {
+    fontSize: FontSize.xs,
   },
-  sortText: { fontSize: FontSize.xs, color: Colors.textSecondary, fontWeight: FontWeight.medium },
+  filterTextActive: {
+    color: '#fff',
+  },
+  sortChip: {
+    flex: 1,
+    alignItems: 'center',
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    paddingVertical: 7,
+  },
+  sortText: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.medium,
+  },
   listCard: {
     flex: 1,
     marginHorizontal: Spacing.md,
-    backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     overflow: 'hidden',
   },

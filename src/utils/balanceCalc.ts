@@ -77,8 +77,23 @@ export function computeEventSummary(expenses: Expense[]): {
   // Derive unique participants from expenses
   const participantSet = new Set(expenses.map((e) => e.personName));
   const participants = Array.from(participantSet);
+  
+  if (participants.length === 1) {
+    const pName = participants[0];
+    return {
+      total,
+      participants,
+      perPerson: [{
+        personName: pName,
+        totalPaid: total,
+        equalShare: total,
+        net: 0,
+      }],
+    };
+  }
+
   const equalShare = total / participants.length;
-  const roundedShare = Math.round(equalShare * 100) / 100;
+  const roundedShare = Number(equalShare.toFixed(2));
 
   const paidMap: Record<string, number> = {};
   for (const p of participants) paidMap[p] = 0;
@@ -88,11 +103,11 @@ export function computeEventSummary(expenses: Expense[]): {
     const net = paidMap[name] - roundedShare;
     return {
       personName: name,
-      totalPaid: paidMap[name],
+      totalPaid: Number(paidMap[name].toFixed(2)),
       equalShare: roundedShare,
-      net: Math.round(net * 100) / 100,
+      net: Number(net.toFixed(2)),
     };
   });
 
-  return { total, participants, perPerson };
+  return { total: Number(total.toFixed(2)), participants, perPerson };
 }

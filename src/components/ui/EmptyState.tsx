@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight } from '../../utils/colors';
+import { Spacing, FontSize, FontWeight, useThemeColors } from '../../utils/colors';
 
 interface EmptyStateProps {
   icon?: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -11,13 +11,14 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ icon = 'inbox-outline', title, subtitle, children }: EmptyStateProps) {
+  const colors = useThemeColors();
   return (
     <View style={styles.container}>
-      <View style={styles.iconWrap}>
-        <MaterialCommunityIcons name={icon} size={52} color={Colors.textMuted} />
+      <View style={[styles.iconWrap, { backgroundColor: colors.surfaceElevated }]}>
+        <MaterialCommunityIcons name={icon} size={52} color={colors.textMuted} />
       </View>
-      <Text style={styles.title}>{title}</Text>
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      {subtitle ? <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text> : null}
       {children}
     </View>
   );
@@ -36,7 +37,6 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: Colors.surfaceElevated,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.sm,
@@ -44,12 +44,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.lg,
     fontWeight: FontWeight.semibold,
-    color: Colors.text,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: FontSize.sm,
-    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
   },

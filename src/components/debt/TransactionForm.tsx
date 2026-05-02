@@ -1,9 +1,9 @@
 import React, { useState, useEffect, memo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import DateTimePicker from 'react-native-ui-datepicker';
-import dayjs from 'dayjs';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
+import { View, Text, TouchableOpacity, StyleSheet, Keyboard } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
 import type { Transaction } from '../../store/debtStore';
+import { DateField } from '../ui/DateField';
 
 interface TransactionFormProps {
   personId: string;
@@ -15,13 +15,13 @@ interface TransactionFormProps {
 type TxType = 'give' | 'take';
 
 export const TransactionForm = memo(function TransactionForm({ personId, onSubmit, onCancel, initial }: TransactionFormProps) {
+  const colors = useThemeColors();
   const [amount, setAmount] = useState(initial ? String(initial.amount) : '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [type, setType] = useState<TxType>(initial?.type ?? 'give');
   const [dateStr, setDateStr] = useState(
     initial ? new Date(initial.date).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA')
   );
-  const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
     setAmount(initial ? String(initial.amount) : '');
@@ -30,95 +30,80 @@ export const TransactionForm = memo(function TransactionForm({ personId, onSubmi
     setDateStr(initial ? new Date(initial.date).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA'));
   }, [initial]);
 
-  const isValid = amount.trim() !== '' && parseFloat(amount) > 0 && description.trim() !== '';
+  const numAmount = Number(amount);
+  const isValid = amount.trim() !== '' && !isNaN(numAmount) && numAmount > 0 && description.trim() !== '';
 
   function handleSubmit() {
     if (!isValid) return;
+    Keyboard.dismiss();
     onSubmit({
       personId,
-      amount: parseFloat(amount),
+      amount: numAmount,
       description: description.trim(),
       type,
       date: new Date(dateStr).toISOString(),
     });
   }
 
+  function handleCancel() {
+    Keyboard.dismiss();
+    onCancel();
+  }
+
   return (
     <View style={styles.container}>
       {/* Type Toggle */}
-      <View style={styles.toggleRow}>
+      <View style={[styles.toggleRow, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
         <TouchableOpacity
-          style={[styles.toggleBtn, type === 'give' && styles.toggleActive]}
+          style={[styles.toggleBtn, type === 'give' && { backgroundColor: colors.positive }]}
           onPress={() => setType('give')}
         >
-          <Text style={[styles.toggleText, type === 'give' && styles.toggleActiveText]}>
+          <Text style={[styles.toggleText, { color: colors.textSecondary }, type === 'give' && styles.toggleActiveText]}>
             I Gave
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.toggleBtn, type === 'take' && styles.toggleActive, type === 'take' && styles.toggleNeg]}
+          style={[styles.toggleBtn, type === 'take' && { backgroundColor: colors.negative }]}
           onPress={() => setType('take')}
         >
-          <Text style={[styles.toggleText, type === 'take' && styles.toggleActiveText]}>
+          <Text style={[styles.toggleText, { color: colors.textSecondary }, type === 'take' && styles.toggleActiveText]}>
             I Got
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Amount */}
-      <Text style={styles.label}>Amount (₹)</Text>
-      <TextInput
-        style={styles.input}
+      <Text style={[styles.label, { color: colors.textSecondary }]}>Amount (₹)</Text>
+      <BottomSheetTextInput
+        style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, color: colors.text }]}
         placeholder="0.00"
-        placeholderTextColor={Colors.textMuted}
+        placeholderTextColor={colors.textMuted}
         value={amount}
         onChangeText={setAmount}
         keyboardType="decimal-pad"
       />
 
       {/* Description */}
-      <Text style={styles.label}>Description</Text>
-      <TextInput
-        style={styles.input}
+      <Text style={[styles.label, { color: colors.textSecondary }]}>Description</Text>
+      <BottomSheetTextInput
+        style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, color: colors.text }]}
         placeholder="e.g. Dinner at Punjab Grill"
-        placeholderTextColor={Colors.textMuted}
+        placeholderTextColor={colors.textMuted}
         value={description}
         onChangeText={setDescription}
         returnKeyType="done"
         maxLength={80}
       />
 
-      {/* Date */}
-      <Text style={styles.label}>Date</Text>
-      <TouchableOpacity
-        style={styles.dateInput}
-        onPress={() => setShowPicker(true)}
-      >
-        <Text style={styles.dateText}>{dateStr}</Text>
-      </TouchableOpacity>
-
-      {showPicker && (
-        <View style={styles.calendarContainer}>
-          <DateTimePicker
-            mode="single"
-            date={dateStr}
-            onChange={(params) => {
-              if (params.date) {
-                setDateStr(dayjs(params.date).format('YYYY-MM-DD'));
-                setShowPicker(false);
-              }
-            }}
-          />
-        </View>
-      )}
+      <DateField value={dateStr} onChange={setDateStr} />
 
       {/* Actions */}
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
-          <Text style={styles.cancelText}>Cancel</Text>
+        <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: colors.surfaceBorder }]} onPress={handleCancel}>
+          <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.submitBtn, !isValid && styles.submitDisabled]}
+          style={[styles.submitBtn, { backgroundColor: colors.accent }, !isValid && styles.submitDisabled]}
           onPress={handleSubmit}
           disabled={!isValid}
         >
@@ -133,12 +118,10 @@ const styles = StyleSheet.create({
   container: { gap: Spacing.sm },
   toggleRow: {
     flexDirection: 'row',
-    backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     padding: 4,
     marginBottom: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
   },
   toggleBtn: {
     flex: 1,
@@ -146,58 +129,32 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm,
     alignItems: 'center',
   },
-  toggleActive: { backgroundColor: Colors.positive },
-  toggleNeg: { backgroundColor: Colors.negative },
-  toggleText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textSecondary },
+  toggleText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold },
   toggleActiveText: { color: '#fff' },
   label: {
     fontSize: FontSize.xs,
     fontWeight: FontWeight.semibold,
-    color: Colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginTop: 4,
   },
   input: {
-    backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 4,
     fontSize: FontSize.md,
-    color: Colors.text,
     marginBottom: 2,
-  },
-  dateInput: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 4,
-    marginBottom: 2,
-  },
-  dateText: {
-    fontSize: FontSize.md,
-    color: Colors.text,
-  },
-  calendarContainer: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    marginTop: Spacing.sm,
-    padding: Spacing.sm,
-    overflow: 'hidden',
   },
   actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
   cancelBtn: {
     flex: 1, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceBorder, alignItems: 'center',
+    alignItems: 'center',
   },
-  cancelText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textSecondary },
+  cancelText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold },
   submitBtn: {
     flex: 2, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
-    backgroundColor: Colors.accent, alignItems: 'center',
+    alignItems: 'center',
   },
   submitDisabled: { opacity: 0.4 },
   submitText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: '#fff' },

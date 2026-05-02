@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
-import { formatCurrency, formatDateShort } from '../../utils/formatting';
+import { Spacing, FontSize, FontWeight, useThemeColors } from '../../utils/colors';
+import { formatCurrency, formatDate } from '../../utils/formatting';
 import type { Expense } from '../../store/eventStore';
 
 interface ExpenseRowProps {
@@ -19,10 +19,11 @@ function getAvatarColor(name: string): string {
 }
 
 export const ExpenseRow = memo(function ExpenseRow({ expense, onPress, isLast }: ExpenseRowProps) {
+  const colors = useThemeColors();
   const color = getAvatarColor(expense.personName);
   return (
     <TouchableOpacity
-      style={[styles.row, isLast && styles.lastRow]}
+      style={[styles.row, { borderBottomColor: colors.separator }, isLast && styles.lastRow]}
       onPress={onPress}
       activeOpacity={0.7}
     >
@@ -32,11 +33,11 @@ export const ExpenseRow = memo(function ExpenseRow({ expense, onPress, isLast }:
         </Text>
       </View>
       <View style={styles.info}>
-        <Text style={styles.person}>{expense.personName}</Text>
-        <Text style={styles.reason} numberOfLines={1}>{expense.reason}</Text>
-        <Text style={styles.date}>{formatDateShort(expense.date)}</Text>
+        <Text style={[styles.person, { color: colors.text }]}>{expense.personName}</Text>
+        <Text style={[styles.reason, { color: colors.textSecondary }]} numberOfLines={1}>{expense.reason}</Text>
+        <Text style={[styles.date, { color: colors.textMuted }]}>{formatDate(expense.date)}</Text>
       </View>
-      <Text style={styles.amount}>{formatCurrency(expense.amount)}</Text>
+      <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(expense.amount)}</Text>
     </TouchableOpacity>
   );
 });
@@ -48,7 +49,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm + 4,
     paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.separator,
     gap: Spacing.sm,
   },
   lastRow: { borderBottomWidth: 0 },
@@ -64,8 +64,8 @@ const styles = StyleSheet.create({
     fontWeight: FontWeight.bold,
   },
   info: { flex: 1, gap: 3 },
-  person: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.text },
-  reason: { fontSize: FontSize.xs, color: Colors.textSecondary },
-  date: { fontSize: FontSize.xs, color: Colors.textMuted },
-  amount: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.text },
+  person: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold },
+  reason: { fontSize: FontSize.xs },
+  date: { fontSize: FontSize.xs },
+  amount: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
 });

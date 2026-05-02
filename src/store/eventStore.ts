@@ -27,7 +27,7 @@ export interface PersonEventSummary {
   net: number; // positive = should receive, negative = owes
 }
 
-interface EventState {
+export interface EventState {
   events: Event[];
   expenses: Expense[];
   isLoaded: boolean;
@@ -41,12 +41,9 @@ interface EventState {
   addExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
   updateExpense: (id: string, updates: Partial<Omit<Expense, 'id'>>) => Promise<void>;
   deleteExpense: (id: string) => Promise<void>;
-
-  getEventExpenses: (eventId: string) => Expense[];
-  getEventSummary: (eventId: string) => { total: number; participants: string[]; perPerson: PersonEventSummary[] };
 }
 
-export const useEventStore = create<EventState>((set, get) => ({
+export const useEventStore = create<EventState>((set) => ({
   events: [],
   expenses: [],
   isLoaded: false,
@@ -58,6 +55,7 @@ export const useEventStore = create<EventState>((set, get) => ({
       set({ events, expenses, isLoaded: true });
     } catch (e) {
       console.error('Failed to load event store from DB:', e);
+      set({ isLoaded: true });
     }
   },
 
@@ -122,39 +120,5 @@ export const useEventStore = create<EventState>((set, get) => ({
     } catch (e) {
       console.error('Failed to delete expense:', e);
     }
-  },
-
-  getEventExpenses: (eventId) =>
-    get().expenses.filter((ex) => ex.eventId === eventId),
-
-  getEventSummary: (eventId) => {
-    const expenses = get().expenses.filter((ex) => ex.eventId === eventId);
-    if (expenses.length === 0) {
-      return { total: 0, participants: [], perPerson: [] };
-    }
-
-    const total = expenses.reduce((sum, e) => sum + e.amount, 0);
-
-    const participantSet = new Set(expenses.map((e) => e.personName));
-    const participants = Array.from(participantSet);
-    const equalShare = total / participants.length;
-    // Round to 2 decimals
-    const roundedShare = Math.round(equalShare * 100) / 100;
-
-    const paidMap: Record<string, number> = {};
-    for (const p of participants) paidMap[p] = 0;
-    for (const e of expenses) paidMap[e.personName] += e.amount;
-
-    const perPerson: PersonEventSummary[] = participants.map((name) => {
-      const net = paidMap[name] - roundedShare;
-      return {
-        personName: name,
-        totalPaid: paidMap[name],
-        equalShare: roundedShare,
-        net: Math.round(net * 100) / 100, // round net balance
-      };
-    });
-
-    return { total, participants, perPerson };
   },
 }));

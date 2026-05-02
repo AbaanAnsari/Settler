@@ -1,8 +1,9 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, FontSize, FontWeight } from '../../utils/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FontSize, FontWeight, useThemeColors } from '../../utils/colors';
 
 type IconName = keyof typeof MaterialIcons.glyphMap;
 
@@ -11,27 +12,39 @@ interface TabBarIconProps {
   nameOutline: IconName;
   label: string;
   focused: boolean;
+  color: string;
 }
 
-function TabBarIcon({ name, nameOutline, focused }: Omit<TabBarIconProps, 'label'>) {
+function TabBarIcon({ name, nameOutline, focused, color }: Omit<TabBarIconProps, 'label'>) {
   return (
     <MaterialIcons
       name={focused ? name : nameOutline}
       size={24}
-      color={focused ? Colors.accent : Colors.icon}
+      color={color}
     />
   );
 }
 
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            backgroundColor: colors.tabBar,
+            borderTopColor: colors.tabBarBorder,
+            height: 58 + insets.bottom,
+            paddingBottom: Math.max(insets.bottom, 10),
+          },
+        ],
         tabBarLabelStyle: styles.tabLabel,
-        tabBarActiveTintColor: Colors.accent,
-        tabBarInactiveTintColor: Colors.icon,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.icon,
       }}
     >
       <Tabs.Screen
@@ -39,8 +52,8 @@ export default function TabsLayout() {
         options={{
           title: 'Debt',
           tabBarLabel: 'Debt',
-          tabBarIcon: ({ focused }) => (
-            <TabBarIcon name="account-balance-wallet" nameOutline="account-balance-wallet" focused={focused} />
+          tabBarIcon: ({ focused, color }) => (
+            <TabBarIcon name="account-balance-wallet" nameOutline="account-balance-wallet" focused={focused} color={color} />
           ),
         }}
       />
@@ -49,8 +62,8 @@ export default function TabsLayout() {
         options={{
           title: 'Events',
           tabBarLabel: 'Events',
-          tabBarIcon: ({ focused }) => (
-            <TabBarIcon name="event" nameOutline="event" focused={focused} />
+          tabBarIcon: ({ focused, color }) => (
+            <TabBarIcon name="event" nameOutline="event" focused={focused} color={color} />
           ),
         }}
       />
@@ -59,8 +72,8 @@ export default function TabsLayout() {
         options={{
           title: 'Voice Notes',
           tabBarLabel: 'Voice',
-          tabBarIcon: ({ focused }) => (
-            <TabBarIcon name="mic" nameOutline="mic-none" focused={focused} />
+          tabBarIcon: ({ focused, color }) => (
+            <TabBarIcon name="mic" nameOutline="mic" focused={focused} color={color} />
           ),
         }}
       />
@@ -78,11 +91,7 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: Colors.tabBar,
-    borderTopColor: Colors.tabBarBorder,
     borderTopWidth: 1,
-    height: Platform.OS === 'ios' ? 95 : 70,
-    paddingBottom: Platform.OS === 'ios' ? 32 : 12,
     paddingTop: 8,
     elevation: 0,
     shadowOpacity: 0,
@@ -91,6 +100,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     fontWeight: FontWeight.semibold,
     letterSpacing: 0.3,
-    marginBottom: Platform.OS === 'ios' ? 0 : 4,
+    marginBottom: 2,
   },
 });
