@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect, memo } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import DateTimePicker from 'react-native-ui-datepicker';
+import dayjs from 'dayjs';
 import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
 import type { Transaction } from '../../store/debtStore';
 
@@ -12,13 +14,21 @@ interface TransactionFormProps {
 
 type TxType = 'give' | 'take';
 
-export function TransactionForm({ personId, onSubmit, onCancel, initial }: TransactionFormProps) {
+export const TransactionForm = memo(function TransactionForm({ personId, onSubmit, onCancel, initial }: TransactionFormProps) {
   const [amount, setAmount] = useState(initial ? String(initial.amount) : '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [type, setType] = useState<TxType>(initial?.type ?? 'give');
   const [dateStr, setDateStr] = useState(
     initial ? new Date(initial.date).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA')
   );
+  const [showPicker, setShowPicker] = useState(false);
+
+  useEffect(() => {
+    setAmount(initial ? String(initial.amount) : '');
+    setDescription(initial?.description ?? '');
+    setType(initial?.type ?? 'give');
+    setDateStr(initial ? new Date(initial.date).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA'));
+  }, [initial]);
 
   const isValid = amount.trim() !== '' && parseFloat(amount) > 0 && description.trim() !== '';
 
@@ -64,7 +74,6 @@ export function TransactionForm({ personId, onSubmit, onCancel, initial }: Trans
         value={amount}
         onChangeText={setAmount}
         keyboardType="decimal-pad"
-        autoFocus
       />
 
       {/* Description */}
@@ -80,15 +89,28 @@ export function TransactionForm({ personId, onSubmit, onCancel, initial }: Trans
       />
 
       {/* Date */}
-      <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="2026-04-30"
-        placeholderTextColor={Colors.textMuted}
-        value={dateStr}
-        onChangeText={setDateStr}
-        keyboardType="numbers-and-punctuation"
-      />
+      <Text style={styles.label}>Date</Text>
+      <TouchableOpacity
+        style={styles.dateInput}
+        onPress={() => setShowPicker(true)}
+      >
+        <Text style={styles.dateText}>{dateStr}</Text>
+      </TouchableOpacity>
+
+      {showPicker && (
+        <View style={styles.calendarContainer}>
+          <DateTimePicker
+            mode="single"
+            date={dateStr}
+            onChange={(params) => {
+              if (params.date) {
+                setDateStr(dayjs(params.date).format('YYYY-MM-DD'));
+                setShowPicker(false);
+              }
+            }}
+          />
+        </View>
+      )}
 
       {/* Actions */}
       <View style={styles.actions}>
@@ -105,7 +127,7 @@ export function TransactionForm({ personId, onSubmit, onCancel, initial }: Trans
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: { gap: Spacing.sm },
@@ -146,6 +168,26 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     color: Colors.text,
     marginBottom: 2,
+  },
+  dateInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 4,
+    marginBottom: 2,
+  },
+  dateText: {
+    fontSize: FontSize.md,
+    color: Colors.text,
+  },
+  calendarContainer: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    marginTop: Spacing.sm,
+    padding: Spacing.sm,
+    overflow: 'hidden',
   },
   actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
   cancelBtn: {

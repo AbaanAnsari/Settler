@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useRef, useMemo, useCallback } from 'react';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomSheetLib from '@gorhom/bottom-sheet';
 import { Colors, Spacing, FontSize, FontWeight } from '../../../utils/colors';
 import { FAB } from '../../../components/ui/FAB';
@@ -12,18 +13,33 @@ import { computeEventSummary } from '../../../utils/balanceCalc';
 import { router } from 'expo-router';
 
 export default function EventsScreen() {
-  const { events, expenses, addEvent, getEventExpenses } = useEventStore();
+  const { events, addEvent, getEventSummary } = useEventStore();
   const sheetRef = useRef<BottomSheetLib>(null);
 
-  // Sort events newest first
-  const sortedEvents = [...events].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  // Sort events newest first, stable
+  const sortedEvents = useMemo(() => {
+    return [...events].sort((a, b) => {
+      const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+      return dateDiff !== 0 ? dateDiff : a.id.localeCompare(b.id);
+    });
+  }, [events]);
 
-  function handleAddEvent(data: { name: string; date: string }) {
+  const handleAddEvent = useCallback((data: { name: string; date: string }) => {
     addEvent(data);
     sheetRef.current?.close();
-  }
+  }, [addEvent]);
+
+  const renderItem = useCallback(({ item }: { item: any }) => {
+    const { total, participants } = getEventSummary(item.id);
+    return (
+      <EventCard
+        event={item}
+        total={total}
+        participantCount={participants.length}
+        onPress={() => router.push(`/events/${item.id}`)}
+      />
+    );
+  }, [getEventSummary]);
 
   return (
     <SafeAreaView style={styles.root}>
@@ -36,18 +52,7 @@ export default function EventsScreen() {
         data={sortedEvents}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => {
-          const eventExpenses = getEventExpenses(item.id);
-          const { total, participants } = computeEventSummary(eventExpenses);
-          return (
-            <EventCard
-              event={item}
-              total={total}
-              participantCount={participants.length}
-              onPress={() => router.push(`/events/${item.id}`)}
-            />
-          );
-        }}
+        renderItem={renderItem}
         ListEmptyComponent={
           <EmptyState
             icon="calendar-plus"
@@ -70,7 +75,7 @@ export default function EventsScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background },
+  root: { flex: 1, backgroundColor: Colors.background, paddingTop: Spacing.md },
   header: {
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.md,

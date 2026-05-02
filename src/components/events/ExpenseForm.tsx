@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect, memo } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import DateTimePicker from 'react-native-ui-datepicker';
+import dayjs from 'dayjs';
 import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
 import type { Expense } from '../../store/eventStore';
 
@@ -11,13 +13,21 @@ interface ExpenseFormProps {
   initial?: Expense;
 }
 
-export function ExpenseForm({ eventId, suggestedNames = [], onSubmit, onCancel, initial }: ExpenseFormProps) {
+export const ExpenseForm = memo(function ExpenseForm({ eventId, suggestedNames = [], onSubmit, onCancel, initial }: ExpenseFormProps) {
   const [personName, setPersonName] = useState(initial?.personName ?? '');
   const [amount, setAmount] = useState(initial ? String(initial.amount) : '');
   const [reason, setReason] = useState(initial?.reason ?? '');
   const [dateStr, setDateStr] = useState(
     initial ? new Date(initial.date).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA')
   );
+  const [showPicker, setShowPicker] = useState(false);
+
+  useEffect(() => {
+    setPersonName(initial?.personName ?? '');
+    setAmount(initial ? String(initial.amount) : '');
+    setReason(initial?.reason ?? '');
+    setDateStr(initial ? new Date(initial.date).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA'));
+  }, [initial]);
 
   const isValid = personName.trim() !== '' && amount.trim() !== '' && parseFloat(amount) > 0;
 
@@ -42,7 +52,6 @@ export function ExpenseForm({ eventId, suggestedNames = [], onSubmit, onCancel, 
         placeholderTextColor={Colors.textMuted}
         value={personName}
         onChangeText={setPersonName}
-        autoFocus
       />
       {/* Quick-fill suggested names */}
       {suggestedNames.length > 0 && (
@@ -75,15 +84,28 @@ export function ExpenseForm({ eventId, suggestedNames = [], onSubmit, onCancel, 
         maxLength={80}
       />
 
-      <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="2026-04-25"
-        placeholderTextColor={Colors.textMuted}
-        value={dateStr}
-        onChangeText={setDateStr}
-        keyboardType="numbers-and-punctuation"
-      />
+      <Text style={styles.label}>Date</Text>
+      <TouchableOpacity
+        style={styles.dateInput}
+        onPress={() => setShowPicker(true)}
+      >
+        <Text style={styles.dateText}>{dateStr}</Text>
+      </TouchableOpacity>
+
+      {showPicker && (
+        <View style={styles.calendarContainer}>
+          <DateTimePicker
+            mode="single"
+            date={dateStr}
+            onChange={(params) => {
+              if (params.date) {
+                setDateStr(dayjs(params.date).format('YYYY-MM-DD'));
+                setShowPicker(false);
+              }
+            }}
+          />
+        </View>
+      )}
 
       <View style={styles.actions}>
         <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
@@ -99,7 +121,7 @@ export function ExpenseForm({ eventId, suggestedNames = [], onSubmit, onCancel, 
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: { gap: Spacing.sm },
@@ -118,6 +140,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm, paddingVertical: 4,
   },
   chipText: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.accentLight },
+  dateInput: {
+    backgroundColor: Colors.surface, borderRadius: Radius.md, borderWidth: 1,
+    borderColor: Colors.surfaceBorder, paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 4, marginBottom: 2,
+  },
+  dateText: { fontSize: FontSize.md, color: Colors.text },
+  calendarContainer: {
+    backgroundColor: Colors.surface, borderRadius: Radius.md, marginTop: Spacing.sm,
+    padding: Spacing.sm, overflow: 'hidden',
+  },
   actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
   cancelBtn: {
     flex: 1, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,

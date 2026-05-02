@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
@@ -12,7 +12,7 @@ interface PersonCardProps {
   onPress: () => void;
 }
 
-export function PersonCard({ person, transactions, onPress }: PersonCardProps) {
+export const PersonCard = memo(function PersonCard({ person, transactions, onPress }: PersonCardProps) {
   const { net, youGet, youOwe } = computePersonBalance(transactions);
   const isPositive = net >= 0;
 
@@ -51,7 +51,7 @@ export function PersonCard({ person, transactions, onPress }: PersonCardProps) {
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
@@ -62,8 +62,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
     gap: Spacing.sm,
   },
   avatar: {

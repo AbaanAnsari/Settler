@@ -49,7 +49,7 @@ export function FAB({ onPress, label = 'Add', icon = 'plus', style }: FABProps) 
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    bottom: Spacing.xl,
+    bottom: Spacing.xl + 16,
     right: Spacing.md,
     backgroundColor: Colors.accent,
     borderRadius: 28,

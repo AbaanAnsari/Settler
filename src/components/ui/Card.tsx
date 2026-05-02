@@ -28,8 +28,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
   },
   elevated: {
     backgroundColor: Colors.surfaceElevated,

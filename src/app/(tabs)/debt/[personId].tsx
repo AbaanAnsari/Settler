@@ -1,8 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo, useCallback } from 'react';
 import {
-  View, Text, FlatList, StyleSheet, SafeAreaView,
+  View, Text, FlatList, StyleSheet,
   TouchableOpacity, Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import BottomSheetLib from '@gorhom/bottom-sheet';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -32,6 +33,41 @@ export default function PersonLedgerScreen() {
 
   const txSheetRef = useRef<BottomSheetLib>(null);
 
+  const { net, youGet, youOwe } = computePersonBalance(rawTransactions);
+  const withBalance = computeRunningBalance(rawTransactions);
+
+  // Filter & Sort
+  const filtered = useMemo(() => {
+    let result = filter === 'all' ? withBalance
+      : withBalance.filter((t) => t.type === (filter === 'give' ? 'give' : 'take'));
+
+    result = [...result].sort((a, b) => {
+      if (sort === 'date') return new Date(b.date).getTime() - new Date(a.date).getTime();
+      return b.amount - a.amount;
+    });
+    return result;
+  }, [withBalance, filter, sort]);
+
+  const netPositive = net >= 0;
+
+  const handleTxSubmit = useCallback((data: Omit<Transaction, 'id'>) => {
+    if (editingTx) {
+      updateTransaction(editingTx.id, data);
+    } else {
+      addTransaction(data);
+    }
+    txSheetRef.current?.close();
+    setEditingTx(null);
+  }, [editingTx, updateTransaction, addTransaction]);
+
+  const renderItem = useCallback(({ item, index }: { item: any, index: number }) => (
+    <TransactionRow
+      tx={item}
+      onPress={() => openEditTx(item)}
+      isLast={index === filtered.length - 1}
+    />
+  ), [filtered.length]);
+
   if (!person) {
     return (
       <SafeAreaView style={styles.root}>
@@ -39,21 +75,6 @@ export default function PersonLedgerScreen() {
       </SafeAreaView>
     );
   }
-
-  const { net, youGet, youOwe } = computePersonBalance(rawTransactions);
-  const withBalance = computeRunningBalance(rawTransactions);
-
-  // Filter
-  let filtered = filter === 'all' ? withBalance
-    : withBalance.filter((t) => t.type === (filter === 'give' ? 'give' : 'take'));
-
-  // Sort
-  filtered = [...filtered].sort((a, b) => {
-    if (sort === 'date') return new Date(b.date).getTime() - new Date(a.date).getTime();
-    return b.amount - a.amount;
-  });
-
-  const netPositive = net >= 0;
 
   function handleSettle() {
     Alert.alert('Settle Up', `Mark all transactions with ${person!.name} as settled? This will clear the balance.`, [
@@ -75,16 +96,6 @@ export default function PersonLedgerScreen() {
   function openEditTx(tx: Transaction) {
     setEditingTx(tx);
     txSheetRef.current?.expand();
-  }
-
-  function handleTxSubmit(data: Omit<Transaction, 'id'>) {
-    if (editingTx) {
-      updateTransaction(editingTx.id, data);
-    } else {
-      addTransaction(data);
-    }
-    txSheetRef.current?.close();
-    setEditingTx(null);
   }
 
   return (
@@ -148,13 +159,7 @@ export default function PersonLedgerScreen() {
           data={filtered}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingBottom: 120 }}
-          renderItem={({ item, index }) => (
-            <TransactionRow
-              tx={item}
-              onPress={() => openEditTx(item)}
-              isLast={index === filtered.length - 1}
-            />
-          )}
+          renderItem={renderItem}
           ListEmptyComponent={
             <EmptyState
               icon="swap-horizontal"
@@ -184,7 +189,7 @@ export default function PersonLedgerScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background },
+  root: { flex: 1, backgroundColor: Colors.background, paddingTop: Spacing.md },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -226,8 +231,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     padding: 4,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
   },
   filterChip: {
     flex: 1,
@@ -246,8 +249,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
   },
   sortText: { fontSize: FontSize.xs, color: Colors.textSecondary, fontWeight: FontWeight.medium },
   listCard: {
@@ -255,8 +256,6 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.md,
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
     overflow: 'hidden',
   },
 });

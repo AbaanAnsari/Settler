@@ -1,7 +1,6 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generateId } from '../utils/id';
+import { getVoiceNotesFromDb, insertVoiceNoteDb, updateVoiceNoteDb, deleteVoiceNoteDb } from '../database/queries';
 
 export type VoiceNoteTag = 'Expense' | 'Reminder' | 'General';
 
@@ -16,58 +15,53 @@ export interface VoiceNote {
 
 interface VoiceNoteState {
   notes: VoiceNote[];
-  addNote: (note: Omit<VoiceNote, 'id'>) => void;
-  updateNote: (id: string, updates: Partial<Omit<VoiceNote, 'id'>>) => void;
-  deleteNote: (id: string) => void;
+  isLoaded: boolean;
+  loadFromDb: () => Promise<void>;
+  addNote: (note: Omit<VoiceNote, 'id'>) => Promise<void>;
+  updateNote: (id: string, updates: Partial<Omit<VoiceNote, 'id'>>) => Promise<void>;
+  deleteNote: (id: string) => Promise<void>;
 }
 
-// Dummy data — placeholder URIs since real recordings need device
-const NOTES: VoiceNote[] = [
-  {
-    id: 'vn1',
-    fileUri: '',
-    duration: 47,
-    title: 'Grocery bill reminder',
-    date: '2026-04-28T10:15:00.000Z',
-    tag: 'Reminder',
-  },
-  {
-    id: 'vn2',
-    fileUri: '',
-    duration: 132,
-    title: 'Goa trip expense recap',
-    date: '2026-04-27T21:30:00.000Z',
-    tag: 'Expense',
-  },
-  {
-    id: 'vn3',
-    fileUri: '',
-    duration: 23,
-    title: 'Quick note — Arjun owes ₹2k',
-    date: '2026-04-25T09:00:00.000Z',
-    tag: 'General',
-  },
-];
+export const useVoiceNoteStore = create<VoiceNoteState>((set) => ({
+  notes: [],
+  isLoaded: false,
 
-export const useVoiceNoteStore = create<VoiceNoteState>()(
-  persist(
-    (set) => ({
-      notes: NOTES,
-
-      addNote: (note) =>
-        set((s) => ({ notes: [{ id: generateId(), ...note }, ...s.notes] })),
-
-      updateNote: (id, updates) =>
-        set((s) => ({
-          notes: s.notes.map((n) => (n.id === id ? { ...n, ...updates } : n)),
-        })),
-
-      deleteNote: (id) =>
-        set((s) => ({ notes: s.notes.filter((n) => n.id !== id) })),
-    }),
-    {
-      name: 'settler-voice-notes',
-      storage: createJSONStorage(() => AsyncStorage),
+  loadFromDb: async () => {
+    try {
+      const notes = await getVoiceNotesFromDb();
+      set({ notes, isLoaded: true });
+    } catch (e) {
+      console.error('Failed to load voice notes from DB:', e);
     }
-  )
-);
+  },
+
+  addNote: async (note) => {
+    const newNote: VoiceNote = { id: generateId(), ...note };
+    try {
+      await insertVoiceNoteDb(newNote);
+      set((s) => ({ notes: [newNote, ...s.notes] }));
+    } catch (e) {
+      console.error('Failed to add voice note:', e);
+    }
+  },
+
+  updateNote: async (id, updates) => {
+    try {
+      await updateVoiceNoteDb(id, updates);
+      set((s) => ({
+        notes: s.notes.map((n) => (n.id === id ? { ...n, ...updates } : n)),
+      }));
+    } catch (e) {
+      console.error('Failed to update voice note:', e);
+    }
+  },
+
+  deleteNote: async (id) => {
+    try {
+      await deleteVoiceNoteDb(id);
+      set((s) => ({ notes: s.notes.filter((n) => n.id !== id) }));
+    } catch (e) {
+      console.error('Failed to delete voice note:', e);
+    }
+  },
+}));

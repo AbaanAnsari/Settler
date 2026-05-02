@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
@@ -12,7 +12,7 @@ interface EventCardProps {
   onPress: () => void;
 }
 
-export function EventCard({ event, total, participantCount, onPress }: EventCardProps) {
+export const EventCard = memo(function EventCard({ event, total, participantCount, onPress }: EventCardProps) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
       <View style={styles.iconWrap}>
@@ -35,7 +35,7 @@ export function EventCard({ event, total, participantCount, onPress }: EventCard
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
@@ -46,8 +46,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
     gap: Spacing.sm,
   },
   iconWrap: {

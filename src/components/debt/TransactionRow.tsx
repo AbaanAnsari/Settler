@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
 import { formatCurrency, formatDateShort } from '../../utils/formatting';
@@ -10,7 +10,7 @@ interface TransactionRowProps {
   isLast?: boolean;
 }
 
-export function TransactionRow({ tx, onPress, isLast }: TransactionRowProps) {
+export const TransactionRow = memo(function TransactionRow({ tx, onPress, isLast }: TransactionRowProps) {
   const isGive = tx.type === 'give';
   const balancePositive = tx.runningBalance >= 0;
 
@@ -44,7 +44,7 @@ export function TransactionRow({ tx, onPress, isLast }: TransactionRowProps) {
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   row: {

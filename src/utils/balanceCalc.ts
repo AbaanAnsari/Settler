@@ -1,5 +1,5 @@
 import type { Transaction } from '../store/debtStore';
-import type { Expense } from '../store/eventStore.ts';
+import type { Expense } from '../store/eventStore';
 
 // ── Debt / Person Balance ────────────────────────────────────────────────────
 
@@ -15,9 +15,10 @@ export interface TransactionWithBalance extends Transaction {
 export function computeRunningBalance(
   transactions: Transaction[]
 ): TransactionWithBalance[] {
-  const sorted = [...transactions].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  const sorted = [...transactions].sort((a, b) => {
+    const dateDiff = new Date(a.date).getTime() - new Date(b.date).getTime();
+    return dateDiff !== 0 ? dateDiff : a.id.localeCompare(b.id);
+  });
 
   let running = 0;
   return sorted.map((tx) => {
@@ -77,17 +78,21 @@ export function computeEventSummary(expenses: Expense[]): {
   const participantSet = new Set(expenses.map((e) => e.personName));
   const participants = Array.from(participantSet);
   const equalShare = total / participants.length;
+  const roundedShare = Math.round(equalShare * 100) / 100;
 
   const paidMap: Record<string, number> = {};
   for (const p of participants) paidMap[p] = 0;
   for (const e of expenses) paidMap[e.personName] += e.amount;
 
-  const perPerson: PersonEventSummary[] = participants.map((name) => ({
-    personName: name,
-    totalPaid: paidMap[name],
-    equalShare,
-    net: paidMap[name] - equalShare,
-  }));
+  const perPerson: PersonEventSummary[] = participants.map((name) => {
+    const net = paidMap[name] - roundedShare;
+    return {
+      personName: name,
+      totalPaid: paidMap[name],
+      equalShare: roundedShare,
+      net: Math.round(net * 100) / 100,
+    };
+  });
 
   return { total, participants, perPerson };
 }

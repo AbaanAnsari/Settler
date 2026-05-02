@@ -1,8 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo, useCallback } from 'react';
 import {
-  View, Text, FlatList, StyleSheet, SafeAreaView,
+  View, Text, FlatList, StyleSheet,
   SectionList, TouchableOpacity, ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import BottomSheetLib from '@gorhom/bottom-sheet';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -19,14 +20,31 @@ import { formatDate, formatCurrency } from '../../../utils/formatting';
 
 export default function EventDetailScreen() {
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
-  const { events, addExpense, updateExpense, deleteExpense, getEventExpenses } = useEventStore();
+  const { events, addExpense, updateExpense, deleteExpense, getEventExpenses, getEventSummary } = useEventStore();
 
   const event = events.find((e) => e.id === eventId);
   const expenses = getEventExpenses(eventId ?? '');
-  const { total, participants, perPerson } = computeEventSummary(expenses);
+  const { total, participants, perPerson } = getEventSummary(eventId ?? '');
 
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const sheetRef = useRef<BottomSheetLib>(null);
+
+  const sortedExpenses = useMemo(() => {
+    return [...expenses].sort((a, b) => {
+      const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+      return dateDiff !== 0 ? dateDiff : a.id.localeCompare(b.id);
+    });
+  }, [expenses]);
+
+  const handleSubmit = useCallback((data: Omit<Expense, 'id'>) => {
+    if (editingExpense) {
+      updateExpense(editingExpense.id, data);
+    } else {
+      addExpense(data);
+    }
+    sheetRef.current?.close();
+    setEditingExpense(null);
+  }, [editingExpense, updateExpense, addExpense]);
 
   if (!event) {
     return (
@@ -36,10 +54,6 @@ export default function EventDetailScreen() {
     );
   }
 
-  const sortedExpenses = [...expenses].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-
   function openAddExpense() {
     setEditingExpense(null);
     sheetRef.current?.expand();
@@ -48,16 +62,6 @@ export default function EventDetailScreen() {
   function openEditExpense(expense: Expense) {
     setEditingExpense(expense);
     sheetRef.current?.expand();
-  }
-
-  function handleSubmit(data: Omit<Expense, 'id'>) {
-    if (editingExpense) {
-      updateExpense(editingExpense.id, data);
-    } else {
-      addExpense(data);
-    }
-    sheetRef.current?.close();
-    setEditingExpense(null);
   }
 
   return (
@@ -78,16 +82,16 @@ export default function EventDetailScreen() {
         {/* Stats row */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{formatCurrency(total)}</Text>
-            <Text style={styles.statLabel}>Total</Text>
+            <Text style={styles.statValue} adjustsFontSizeToFit numberOfLines={1}>{formatCurrency(total)}</Text>
+            <Text style={styles.statLabel} adjustsFontSizeToFit numberOfLines={1}>Total</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{participants.length}</Text>
-            <Text style={styles.statLabel}>People</Text>
+            <Text style={styles.statValue} adjustsFontSizeToFit numberOfLines={1}>{participants.length}</Text>
+            <Text style={styles.statLabel} adjustsFontSizeToFit numberOfLines={1}>People</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{formatCurrency(participants.length > 0 ? total / participants.length : 0)}</Text>
-            <Text style={styles.statLabel}>Per person</Text>
+            <Text style={styles.statValue} adjustsFontSizeToFit numberOfLines={1}>{formatCurrency(participants.length > 0 ? total / participants.length : 0)}</Text>
+            <Text style={styles.statLabel} adjustsFontSizeToFit numberOfLines={1}>Per person</Text>
           </View>
         </View>
 
@@ -144,7 +148,7 @@ export default function EventDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background },
+  root: { flex: 1, backgroundColor: Colors.background, paddingTop: Spacing.md },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -167,10 +171,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,
-    padding: Spacing.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xs,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
+    justifyContent: 'center',
     gap: 4,
   },
   statValue: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.text },
@@ -185,8 +189,6 @@ const styles = StyleSheet.create({
   ledgerCard: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
     overflow: 'hidden',
   },
 });

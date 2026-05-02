@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import React, { useRef, useCallback } from 'react';
+import { View, Text, FlatList, StyleSheet, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomSheetLib from '@gorhom/bottom-sheet';
 import { Colors, Spacing, FontSize, FontWeight } from '../../../utils/colors';
 import { FAB } from '../../../components/ui/FAB';
@@ -14,20 +15,24 @@ export default function VoiceNotesScreen() {
   const { notes, addNote, deleteNote } = useVoiceNoteStore();
   const sheetRef = useRef<BottomSheetLib>(null);
 
-  function handleSave(data: { title: string; duration: number; fileUri: string; tag?: VoiceNoteTag }) {
+  const handleSave = useCallback((data: { title: string; duration: number; fileUri: string; tag?: VoiceNoteTag }) => {
     addNote({
       ...data,
       date: toISOString(),
     });
     sheetRef.current?.close();
-  }
+  }, [addNote]);
 
-  function handleDelete(id: string) {
+  const handleDelete = useCallback((id: string) => {
     Alert.alert('Delete Note', 'Are you sure you want to delete this voice note?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => deleteNote(id) },
     ]);
-  }
+  }, [deleteNote]);
+
+  const renderItem = useCallback(({ item }: { item: any }) => (
+    <VoiceNoteCard note={item} onDelete={() => handleDelete(item.id)} />
+  ), [handleDelete]);
 
   return (
     <SafeAreaView style={styles.root}>
@@ -40,9 +45,7 @@ export default function VoiceNotesScreen() {
         data={notes}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <VoiceNoteCard note={item} onDelete={() => handleDelete(item.id)} />
-        )}
+        renderItem={renderItem}
         ListEmptyComponent={
           <EmptyState
             icon="microphone-outline"
@@ -65,7 +68,7 @@ export default function VoiceNotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background },
+  root: { flex: 1, backgroundColor: Colors.background, paddingTop: Spacing.md },
   header: {
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.md,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
 import { formatCurrency } from '../../utils/formatting';
@@ -17,7 +17,7 @@ function getAvatarColor(name: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-export function SummaryCard({ summaries, total }: SummaryCardProps) {
+export const SummaryCard = memo(function SummaryCard({ summaries, total }: SummaryCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -51,15 +51,13 @@ export function SummaryCard({ summaries, total }: SummaryCardProps) {
       })}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     marginHorizontal: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
     overflow: 'hidden',
   },
   header: {

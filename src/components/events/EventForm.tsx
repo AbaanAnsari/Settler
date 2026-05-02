@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect, memo } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import DateTimePicker from 'react-native-ui-datepicker';
+import dayjs from 'dayjs';
 import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
 import type { Event } from '../../store/eventStore';
 
@@ -9,11 +11,17 @@ interface EventFormProps {
   initial?: Event;
 }
 
-export function EventForm({ onSubmit, onCancel, initial }: EventFormProps) {
+export const EventForm = memo(function EventForm({ onSubmit, onCancel, initial }: EventFormProps) {
   const [name, setName] = useState(initial?.name ?? '');
   const [dateStr, setDateStr] = useState(
     initial ? new Date(initial.date).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA')
   );
+  const [showPicker, setShowPicker] = useState(false);
+
+  useEffect(() => {
+    setName(initial?.name ?? '');
+    setDateStr(initial ? new Date(initial.date).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA'));
+  }, [initial]);
 
   const isValid = name.trim() !== '';
 
@@ -31,19 +39,31 @@ export function EventForm({ onSubmit, onCancel, initial }: EventFormProps) {
         placeholderTextColor={Colors.textMuted}
         value={name}
         onChangeText={setName}
-        autoFocus
         maxLength={60}
       />
 
-      <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="2026-04-25"
-        placeholderTextColor={Colors.textMuted}
-        value={dateStr}
-        onChangeText={setDateStr}
-        keyboardType="numbers-and-punctuation"
-      />
+      <Text style={styles.label}>Date</Text>
+      <TouchableOpacity
+        style={styles.dateInput}
+        onPress={() => setShowPicker(true)}
+      >
+        <Text style={styles.dateText}>{dateStr}</Text>
+      </TouchableOpacity>
+
+      {showPicker && (
+        <View style={styles.calendarContainer}>
+          <DateTimePicker
+            mode="single"
+            date={dateStr}
+            onChange={(params) => {
+              if (params.date) {
+                setDateStr(dayjs(params.date).format('YYYY-MM-DD'));
+                setShowPicker(false);
+              }
+            }}
+          />
+        </View>
+      )}
 
       <View style={styles.actions}>
         <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
@@ -59,7 +79,7 @@ export function EventForm({ onSubmit, onCancel, initial }: EventFormProps) {
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: { gap: Spacing.sm },
@@ -71,6 +91,16 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface, borderRadius: Radius.md, borderWidth: 1,
     borderColor: Colors.surfaceBorder, paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 4, fontSize: FontSize.md, color: Colors.text, marginBottom: 2,
+  },
+  dateInput: {
+    backgroundColor: Colors.surface, borderRadius: Radius.md, borderWidth: 1,
+    borderColor: Colors.surfaceBorder, paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 4, marginBottom: 2,
+  },
+  dateText: { fontSize: FontSize.md, color: Colors.text },
+  calendarContainer: {
+    backgroundColor: Colors.surface, borderRadius: Radius.md, marginTop: Spacing.sm,
+    padding: Spacing.sm, overflow: 'hidden',
   },
   actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
   cancelBtn: {

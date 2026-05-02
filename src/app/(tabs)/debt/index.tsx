@@ -1,8 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useMemo, useCallback } from 'react';
 import {
-  View, Text, FlatList, StyleSheet, SafeAreaView,
+  View, Text, FlatList, StyleSheet,
   TouchableOpacity, Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomSheetLib from '@gorhom/bottom-sheet';
 import { Colors, Spacing, FontSize, FontWeight } from '../../../utils/colors';
 import { FAB } from '../../../components/ui/FAB';
@@ -20,22 +21,33 @@ export default function DebtScreen() {
   const bottomSheetRef = useRef<BottomSheetLib>(null);
 
   // Compute overall summary
-  let totalOwed = 0;
-  let totalOwing = 0;
-  for (const p of people) {
-    const { net } = computePersonBalance(getPersonTransactions(p.id));
-    if (net > 0) totalOwed += net;
-    else totalOwing += Math.abs(net);
-  }
+  const { totalOwed, totalOwing } = useMemo(() => {
+    let owed = 0;
+    let owing = 0;
+    for (const p of people) {
+      const { net } = computePersonBalance(getPersonTransactions(p.id));
+      if (net > 0) owed += net;
+      else owing += Math.abs(net);
+    }
+    return { totalOwed: owed, totalOwing: owing };
+  }, [people, getPersonTransactions]);
 
   function openAddPerson() {
     bottomSheetRef.current?.expand();
   }
 
-  function handleAddPerson(name: string) {
+  const handleAddPerson = useCallback((name: string) => {
     addPerson(name);
     bottomSheetRef.current?.close();
-  }
+  }, [addPerson]);
+
+  const renderItem = useCallback(({ item }: { item: any }) => (
+    <PersonCard
+      person={item}
+      transactions={getPersonTransactions(item.id)}
+      onPress={() => router.push(`/debt/${item.id}`)}
+    />
+  ), [getPersonTransactions]);
 
   return (
     <SafeAreaView style={styles.root}>
@@ -68,13 +80,7 @@ export default function DebtScreen() {
         data={people}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <PersonCard
-            person={item}
-            transactions={getPersonTransactions(item.id)}
-            onPress={() => router.push(`/debt/${item.id}`)}
-          />
-        )}
+        renderItem={renderItem}
         ListEmptyComponent={
           <EmptyState
             icon="account-group-outline"
@@ -97,7 +103,7 @@ export default function DebtScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background },
+  root: { flex: 1, backgroundColor: Colors.background, paddingTop: Spacing.md },
   header: {
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.md,

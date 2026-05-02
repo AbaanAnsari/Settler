@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
@@ -16,16 +16,12 @@ const TAG_COLORS: Record<VoiceNoteTag, { bg: string; text: string }> = {
   General: { bg: Colors.surfaceElevated, text: Colors.textSecondary },
 };
 
-export function VoiceNoteCard({ note, onDelete }: VoiceNoteCardProps) {
+export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDelete }: VoiceNoteCardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   function handlePlayPause() {
-    if (!note.fileUri) {
-      Alert.alert('No Recording', 'This is sample data. Record a new note to play it back.');
-      return;
-    }
     if (isPlaying) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       setIsPlaying(false);
@@ -100,7 +96,7 @@ export function VoiceNoteCard({ note, onDelete }: VoiceNoteCardProps) {
       </TouchableOpacity>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
@@ -111,8 +107,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
     gap: Spacing.sm,
   },
   playBtn: {

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { View, Text, StyleSheet, Platform } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, FontSize, FontWeight } from '../../utils/colors';
 
-type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
+type IconName = keyof typeof MaterialIcons.glyphMap;
 
 interface TabBarIconProps {
   name: IconName;
@@ -13,23 +13,13 @@ interface TabBarIconProps {
   focused: boolean;
 }
 
-function TabBarItem({ name, nameOutline, label, focused }: TabBarIconProps) {
+function TabBarIcon({ name, nameOutline, focused }: Omit<TabBarIconProps, 'label'>) {
   return (
-    <View style={styles.tabItem}>
-      <MaterialCommunityIcons
-        name={focused ? name : nameOutline}
-        size={24}
-        color={focused ? Colors.accent : Colors.icon}
-      />
-      <Text
-        style={[
-          styles.tabLabel,
-          { color: focused ? Colors.accent : Colors.icon },
-        ]}
-      >
-        {label}
-      </Text>
-    </View>
+    <MaterialIcons
+      name={focused ? name : nameOutline}
+      size={24}
+      color={focused ? Colors.accent : Colors.icon}
+    />
   );
 }
 
@@ -39,50 +29,48 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: styles.tabBar,
-        tabBarShowLabel: false,
+        tabBarLabelStyle: styles.tabLabel,
+        tabBarActiveTintColor: Colors.accent,
+        tabBarInactiveTintColor: Colors.icon,
       }}
     >
       <Tabs.Screen
-        name="debt"
+        name="debt/index"
         options={{
           title: 'Debt',
+          tabBarLabel: 'Debt',
           tabBarIcon: ({ focused }) => (
-            <TabBarItem
-              name="account-cash"
-              nameOutline="account-cash-outline"
-              label="Debt"
-              focused={focused}
-            />
+            <TabBarIcon name="account-balance-wallet" nameOutline="account-balance-wallet" focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
-        name="events"
+        name="events/index"
         options={{
           title: 'Events',
+          tabBarLabel: 'Events',
           tabBarIcon: ({ focused }) => (
-            <TabBarItem
-              name="calendar-star"
-              nameOutline="calendar-star-outline"
-              label="Events"
-              focused={focused}
-            />
+            <TabBarIcon name="event" nameOutline="event" focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
-        name="voice-notes"
+        name="voice-notes/index"
         options={{
           title: 'Voice Notes',
+          tabBarLabel: 'Voice',
           tabBarIcon: ({ focused }) => (
-            <TabBarItem
-              name="microphone"
-              nameOutline="microphone-outline"
-              label="Voice"
-              focused={focused}
-            />
+            <TabBarIcon name="mic" nameOutline="mic-none" focused={focused} />
           ),
         }}
+      />
+      <Tabs.Screen
+        name="debt/[personId]"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="events/[eventId]"
+        options={{ href: null }}
       />
     </Tabs>
   );
@@ -93,20 +81,16 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.tabBar,
     borderTopColor: Colors.tabBarBorder,
     borderTopWidth: 1,
-    height: Platform.OS === 'ios' ? 88 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 8,
+    height: Platform.OS === 'ios' ? 95 : 70,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 12,
     paddingTop: 8,
     elevation: 0,
     shadowOpacity: 0,
-  },
-  tabItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
   },
   tabLabel: {
     fontSize: FontSize.xs,
     fontWeight: FontWeight.semibold,
     letterSpacing: 0.3,
+    marginBottom: Platform.OS === 'ios' ? 0 : 4,
   },
 });

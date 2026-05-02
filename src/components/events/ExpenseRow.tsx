@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Spacing, FontSize, FontWeight, Radius } from '../../utils/colors';
 import { formatCurrency, formatDateShort } from '../../utils/formatting';
@@ -18,7 +18,7 @@ function getAvatarColor(name: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-export function ExpenseRow({ expense, onPress, isLast }: ExpenseRowProps) {
+export const ExpenseRow = memo(function ExpenseRow({ expense, onPress, isLast }: ExpenseRowProps) {
   const color = getAvatarColor(expense.personName);
   return (
     <TouchableOpacity
@@ -39,7 +39,7 @@ export function ExpenseRow({ expense, onPress, isLast }: ExpenseRowProps) {
       <Text style={styles.amount}>{formatCurrency(expense.amount)}</Text>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   row: {

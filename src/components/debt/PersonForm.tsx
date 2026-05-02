@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform,
 } from 'react-native';
@@ -10,8 +10,12 @@ interface PersonFormProps {
   initial?: { name: string };
 }
 
-export function PersonForm({ onSubmit, onCancel, initial }: PersonFormProps) {
+export const PersonForm = memo(function PersonForm({ onSubmit, onCancel, initial }: PersonFormProps) {
   const [name, setName] = useState(initial?.name ?? '');
+
+  useEffect(() => {
+    setName(initial?.name ?? '');
+  }, [initial]);
 
   function handleSubmit() {
     const trimmed = name.trim();
@@ -29,7 +33,6 @@ export function PersonForm({ onSubmit, onCancel, initial }: PersonFormProps) {
         placeholderTextColor={Colors.textMuted}
         value={name}
         onChangeText={setName}
-        autoFocus
         returnKeyType="done"
         onSubmitEditing={handleSubmit}
         maxLength={40}
@@ -49,7 +52,7 @@ export function PersonForm({ onSubmit, onCancel, initial }: PersonFormProps) {
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
