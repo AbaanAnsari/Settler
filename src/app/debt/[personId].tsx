@@ -159,7 +159,10 @@ export default function PersonLedgerScreen() {
       {/* Hero */}
       <View style={styles.hero}>
         <Text
-          style={[styles.netLabel, { color: colors.textSecondary, textAlign: 'center' }]}
+          style={[styles.netLabel, { color: colors.textSecondary }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.9}
         >
           {net === 0 ? 'All settled up' : netPositive ? 'Owes you' : 'You owe'}
         </Text>
@@ -267,8 +270,11 @@ export default function PersonLedgerScreen() {
           data={filtered}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            paddingBottom: insets.bottom + 150,
+            paddingVertical: Spacing.sm,
+            paddingBottom: insets.bottom + 80,
+            flexGrow: 1,
           }}
           ListEmptyComponent={
             <EmptyState
@@ -428,7 +434,14 @@ const styles = StyleSheet.create({
   listCard: {
     flex: 1,
     marginHorizontal: Spacing.md,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.xl,
     borderRadius: Radius.lg,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
     overflow: 'hidden',
   },
 });

@@ -61,27 +61,5 @@ async function initDb(database: SQLite.SQLiteDatabase) {
       tag TEXT
     );
   `);
-
-  const result = await database.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM people');
-  if (result && result.count === 0) {
-    await seedDb(database);
-  }
-}
-
-async function seedDb(db: SQLite.SQLiteDatabase) {
-  // People
-  await db.runAsync("INSERT INTO people (id, name, color) VALUES ('p1', 'Arjun Sharma', '#7C6FF7')");
-  await db.runAsync("INSERT INTO people (id, name, color) VALUES ('p2', 'Priya Kapoor', '#F87171')");
-  await db.runAsync("INSERT INTO people (id, name, color) VALUES ('p3', 'Rahul Verma', '#34D399')");
-
-  // Transactions
-  await db.runAsync("INSERT INTO transactions (id, personId, amount, type, description, date) VALUES ('t1', 'p1', 1200, 'give', 'Dinner at Punjab Grill', '2026-04-10T19:30:00.000Z')");
-  await db.runAsync("INSERT INTO transactions (id, personId, amount, type, description, date) VALUES ('t2', 'p1', 500, 'take', 'Movie tickets', '2026-04-15T14:00:00.000Z')");
-  
-  // Events
-  await db.runAsync("INSERT INTO events (id, name, date) VALUES ('e1', 'Goa Trip 2026', '2026-04-25T00:00:00.000Z')");
-
-  // Expenses
-  await db.runAsync("INSERT INTO expenses (id, eventId, personName, amount, reason, date) VALUES ('ex1', 'e1', 'Arjun', 8500, 'Flight tickets', '2026-04-24T08:00:00.000Z')");
-  await db.runAsync("INSERT INTO expenses (id, eventId, personName, amount, reason, date) VALUES ('ex2', 'e1', 'Priya', 4200, 'Hotel', '2026-04-25T14:00:00.000Z')");
+ 
 }

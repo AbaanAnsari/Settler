@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: Radius.full,
-    paddingHorizontal: 5,
+    paddingHorizontal: 11,
     paddingVertical: 3,
   },
   pillIcon: {
