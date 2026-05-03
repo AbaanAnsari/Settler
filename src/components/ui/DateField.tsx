@@ -1,9 +1,10 @@
 import React, { memo, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import DateTimePicker from 'react-native-ui-datepicker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import { Spacing, FontSize, FontWeight, Radius, ThemeColors, useThemeColors } from '../../utils/colors';
+import { FittedText } from './FittedText';
 
 interface DateFieldProps {
   value: string;
@@ -119,13 +120,13 @@ export const DateField = memo(function DateField({ value, onChange }: DateFieldP
 
   return (
     <>
-      <Text style={[styles.label, { color: colors.textSecondary }]}>Date</Text>
+      <FittedText style={[styles.label, { color: colors.textSecondary }]} minimumFontScale={0.82}>Date</FittedText>
       <TouchableOpacity
         style={[styles.dateInput, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}
         onPress={() => setShowPicker((visible) => !visible)}
         activeOpacity={0.75}
       >
-        <Text style={[styles.dateText, { color: colors.text }]}>{value}</Text>
+        <FittedText style={[styles.dateText, { color: colors.text }]} minimumFontScale={0.78}>{value}</FittedText>
         <MaterialCommunityIcons
           name={showPicker ? 'chevron-up' : 'calendar-month-outline'}
           size={20}
@@ -183,6 +184,9 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
+    flex: 1,
+    minWidth: 0,
+    marginRight: Spacing.sm,
   },
   calendarContainer: {
     borderRadius: Radius.md,

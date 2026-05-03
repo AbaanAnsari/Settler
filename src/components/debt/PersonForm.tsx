@@ -3,10 +3,11 @@ import React, { memo, useEffect, useState } from 'react';
 import {
   Keyboard,
   StyleSheet,
-  Text, TouchableOpacity,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
+import { FittedText } from '../ui/FittedText';
 
 interface PersonFormProps {
   onSubmit: (name: string) => void;
@@ -37,7 +38,7 @@ export const PersonForm = memo(function PersonForm({ onSubmit, onCancel, initial
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: colors.textSecondary }]}>Name</Text>
+      <FittedText style={[styles.label, { color: colors.textSecondary }]} minimumFontScale={0.82}>Name</FittedText>
       <BottomSheetTextInput
         style={[
           styles.input,
@@ -54,14 +55,14 @@ export const PersonForm = memo(function PersonForm({ onSubmit, onCancel, initial
 
       <View style={styles.actions}>
         <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: colors.surfaceBorder }]} onPress={handleCancel}>
-          <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
+          <FittedText style={[styles.cancelText, { color: colors.textSecondary }]} minimumFontScale={0.78}>Cancel</FittedText>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.submitBtn, { backgroundColor: colors.accent }, !name.trim() && styles.submitDisabled]}
           onPress={handleSubmit}
           disabled={!name.trim()}
         >
-          <Text style={styles.submitText}>{initial ? 'Save Changes' : 'Add Person'}</Text>
+          <FittedText style={styles.submitText} minimumFontScale={0.76}>{initial ? 'Save Changes' : 'Add Person'}</FittedText>
         </TouchableOpacity>
       </View>
     </View>

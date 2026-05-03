@@ -1,7 +1,8 @@
 import React, { ReactNode } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Spacing, FontSize, FontWeight, useThemeColors } from '../../utils/colors';
+import { FittedText } from './FittedText';
 
 interface EmptyStateProps {
   icon?: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -17,13 +18,13 @@ export function EmptyState({ icon = 'inbox-outline', title, subtitle, children }
       <View style={[styles.iconWrap, { backgroundColor: colors.surfaceElevated }]}>
         <MaterialCommunityIcons name={icon} size={52} color={colors.textMuted} />
       </View>
-      <Text style={[styles.title, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
+      <FittedText style={[styles.title, { color: colors.text }]} numberOfLines={2} minimumFontScale={0.78}>
         {title}
-      </Text>
+      </FittedText>
       {subtitle ? (
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={3} ellipsizeMode="tail">
+        <FittedText style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={3} minimumFontScale={0.82}>
           {subtitle}
-        </Text>
+        </FittedText>
       ) : null}
       {children}
     </View>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, memo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Keyboard } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Keyboard } from 'react-native';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
 import type { Transaction } from '../../store/debtStore';
 import { DateField } from '../ui/DateField';
+import { FittedText } from '../ui/FittedText';
 
 interface TransactionFormProps {
   personId: string;
@@ -58,22 +59,22 @@ export const TransactionForm = memo(function TransactionForm({ personId, onSubmi
           style={[styles.toggleBtn, type === 'give' && { backgroundColor: colors.positive }]}
           onPress={() => setType('give')}
         >
-          <Text style={[styles.toggleText, { color: colors.textSecondary }, type === 'give' && styles.toggleActiveText]}>
+          <FittedText style={[styles.toggleText, { color: colors.textSecondary }, type === 'give' && styles.toggleActiveText]} minimumFontScale={0.8}>
             I Gave
-          </Text>
+          </FittedText>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.toggleBtn, type === 'take' && { backgroundColor: colors.negative }]}
           onPress={() => setType('take')}
         >
-          <Text style={[styles.toggleText, { color: colors.textSecondary }, type === 'take' && styles.toggleActiveText]}>
+          <FittedText style={[styles.toggleText, { color: colors.textSecondary }, type === 'take' && styles.toggleActiveText]} minimumFontScale={0.8}>
             I Got
-          </Text>
+          </FittedText>
         </TouchableOpacity>
       </View>
 
       {/* Amount */}
-      <Text style={[styles.label, { color: colors.textSecondary }]}>Amount (₹)</Text>
+      <FittedText style={[styles.label, { color: colors.textSecondary }]} minimumFontScale={0.82}>Amount (Rs)</FittedText>
       <BottomSheetTextInput
         style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, color: colors.text }]}
         placeholder="0.00"
@@ -84,7 +85,7 @@ export const TransactionForm = memo(function TransactionForm({ personId, onSubmi
       />
 
       {/* Description */}
-      <Text style={[styles.label, { color: colors.textSecondary }]}>Description</Text>
+      <FittedText style={[styles.label, { color: colors.textSecondary }]} minimumFontScale={0.82}>Description</FittedText>
       <BottomSheetTextInput
         style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, color: colors.text }]}
         placeholder="e.g. Dinner at Punjab Grill"
@@ -100,14 +101,14 @@ export const TransactionForm = memo(function TransactionForm({ personId, onSubmi
       {/* Actions */}
       <View style={styles.actions}>
         <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: colors.surfaceBorder }]} onPress={handleCancel}>
-          <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
+          <FittedText style={[styles.cancelText, { color: colors.textSecondary }]} minimumFontScale={0.78}>Cancel</FittedText>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.submitBtn, { backgroundColor: colors.accent }, !isValid && styles.submitDisabled]}
           onPress={handleSubmit}
           disabled={!isValid}
         >
-          <Text style={styles.submitText}>{initial ? 'Save Changes' : 'Add Transaction'}</Text>
+          <FittedText style={styles.submitText} minimumFontScale={0.74}>{initial ? 'Save Changes' : 'Add Transaction'}</FittedText>
         </TouchableOpacity>
       </View>
     </View>

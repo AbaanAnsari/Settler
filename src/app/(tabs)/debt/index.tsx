@@ -13,6 +13,7 @@ import { PersonForm } from '../../../components/debt/PersonForm';
 import BottomSheet from '../../../components/ui/BottomSheet';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { FAB } from '../../../components/ui/FAB';
+import { FittedText } from '../../../components/ui/FittedText';
 import { type Person, useDebtStore } from '../../../store/debtStore';
 import { computePersonBalance } from '../../../utils/balanceCalc';
 import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../../utils/colors';
@@ -78,24 +79,27 @@ export default function DebtScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+          <FittedText style={[styles.title, { color: colors.text }]} minimumFontScale={0.78}>
             Debt
-          </Text>
+          </FittedText>
           <View style={[styles.countBadge, { backgroundColor: colors.surfaceElevated }]}>
-            <Text style={[styles.countText, { color: colors.text }]} numberOfLines={1}>
+            <FittedText style={[styles.countText, { color: colors.text }]} minimumFontScale={0.8}>
               {people.length}
-            </Text>
+            </FittedText>
           </View>
         </View>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+          People, balances, and settlements
+        </Text>
       </View>
 
       {/* Summary Row */}
       {people.length > 0 && (
         <View style={styles.summaryRow}>
-          <View style={[styles.summaryCard, styles.summaryCardFirst, { backgroundColor: colors.positiveBg }]}>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+          <View style={[styles.summaryCard, styles.summaryCardFirst, { backgroundColor: colors.positiveBg, borderColor: colors.surfaceBorder }]}>
+            <FittedText style={[styles.summaryLabel, { color: colors.textSecondary }]} minimumFontScale={0.85}>
               You get
-            </Text>
+            </FittedText>
             <Text
               style={[styles.summaryAmount, { color: colors.positive }]}
               numberOfLines={1}
@@ -106,10 +110,10 @@ export default function DebtScreen() {
               {formatCurrency(totalOwed)}
             </Text>
           </View>
-          <View style={[styles.summaryCard, { backgroundColor: colors.negativeBg }]}>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+          <View style={[styles.summaryCard, { backgroundColor: colors.negativeBg, borderColor: colors.surfaceBorder }]}>
+            <FittedText style={[styles.summaryLabel, { color: colors.textSecondary }]} minimumFontScale={0.85}>
               You owe
-            </Text>
+            </FittedText>
             <Text
               style={[styles.summaryAmount, { color: colors.negative }]}
               numberOfLines={1}
@@ -164,11 +168,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'baseline',
   },
   title: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold },
-  subtitle: { fontSize: FontSize.sm },
+  subtitle: { fontSize: FontSize.sm, marginTop: 2 },
   summaryRow: {
     flexDirection: 'row',
     marginHorizontal: Spacing.md,
@@ -180,6 +182,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     borderRadius: 12,
     padding: Spacing.md,
+    borderWidth: 1,
   },
   summaryCardFirst: {
     marginRight: Spacing.sm,

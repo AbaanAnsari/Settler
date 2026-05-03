@@ -16,6 +16,7 @@ import { TransactionRow } from '../../components/debt/TransactionRow';
 import BottomSheet from '../../components/ui/BottomSheet';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { FAB } from '../../components/ui/FAB';
+import { FittedText } from '../../components/ui/FittedText';
 import { Transaction, useDebtStore } from '../../store/debtStore';
 import { selectPersonTransactions } from '../../store/selectors';
 import { computePersonBalance, computeRunningBalance, TransactionWithBalance } from '../../utils/balanceCalc';
@@ -37,7 +38,7 @@ export default function PersonLedgerScreen() {
 
   const person = people.find((p) => p.id === personId);
 
-  // ✅ safer selector usage
+  // Keep selector output stable for this ledger.
   const rawTransactions = useDebtStore(
     useShallow((state) => selectPersonTransactions(personId ?? '')(state))
   );
@@ -158,14 +159,12 @@ export default function PersonLedgerScreen() {
 
       {/* Hero */}
       <View style={styles.hero}>
-        <Text
+        <FittedText
           style={[styles.netLabel, { color: colors.textSecondary }]}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.9}
+          minimumFontScale={0.84}
         >
           {net === 0 ? 'All settled up' : netPositive ? 'Owes you' : 'You owe'}
-        </Text>
+        </FittedText>
         <Text
           style={[styles.netAmount, { color: netPositive ? colors.positive : colors.negative }]}
           numberOfLines={1}
@@ -173,15 +172,16 @@ export default function PersonLedgerScreen() {
           adjustsFontSizeToFit
           minimumFontScale={0.75}
         >
-          {net === 0 ? '₹0' : formatCurrency(Math.abs(net))}
+          {net === 0 ? 'Rs 0' : formatCurrency(Math.abs(net))}
         </Text>
         <View style={styles.heroRow}>
           <View style={[styles.heroStat, { backgroundColor: colors.surface }]}>
-            <Text
+            <FittedText
               style={[styles.heroStatLabel, { color: colors.textSecondary, textAlign: 'center' }]}
+              minimumFontScale={0.85}
             >
               You get
-            </Text>
+            </FittedText>
             <Text
               style={[styles.heroStatValue, { color: colors.positive }]}
               numberOfLines={1}
@@ -193,11 +193,12 @@ export default function PersonLedgerScreen() {
             </Text>
           </View>
           <View style={[styles.heroStat, styles.heroStatSecond, { backgroundColor: colors.surface }]}>
-            <Text
+            <FittedText
               style={[styles.heroStatLabel, { color: colors.textSecondary, textAlign: 'center' }]}
+              minimumFontScale={0.85}
             >
               You owe
-            </Text>
+            </FittedText>
             <Text
               style={[styles.heroStatValue, { color: colors.negative }]}
               numberOfLines={1}
@@ -212,7 +213,7 @@ export default function PersonLedgerScreen() {
 
         {rawTransactions.length > 0 && (
           <TouchableOpacity style={[styles.settleBtn, { backgroundColor: colors.accent }]} onPress={handleSettle}>
-            <Text style={styles.settleBtnText}>Settle Up</Text>
+            <FittedText style={styles.settleBtnText} minimumFontScale={0.78}>Settle Up</FittedText>
           </TouchableOpacity>
         )}
       </View>
@@ -226,15 +227,12 @@ export default function PersonLedgerScreen() {
               style={[styles.filterChip, filter === f && styles.filterChipActive, filter === f && { backgroundColor: colors.accent }]}
               onPress={() => setFilter(f)}
             >
-              <Text
+              <FittedText
                 style={[styles.filterText, { color: colors.textSecondary }, filter === f && styles.filterTextActive]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                adjustsFontSizeToFit
                 minimumFontScale={0.85}
               >
                 {f === 'all' ? 'All' : f === 'give' ? 'Given' : 'Taken'}
-              </Text>
+              </FittedText>
             </TouchableOpacity>
           ))}
         </View>
@@ -250,15 +248,12 @@ export default function PersonLedgerScreen() {
               ]}
               onPress={() => setSort(s)}
             >
-              <Text
+              <FittedText
                 style={[styles.sortText, { color: colors.textSecondary }, sort === s && { color: colors.accentLight }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                adjustsFontSizeToFit
                 minimumFontScale={0.85}
               >
                 {s === 'date' ? 'Recent first' : 'Amount high'}
-              </Text>
+              </FittedText>
             </TouchableOpacity>
           ))}
         </View>

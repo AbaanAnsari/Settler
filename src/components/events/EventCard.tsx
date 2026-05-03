@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Event } from '../../store/eventStore';
 import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
 import { formatCurrency, formatDate } from '../../utils/formatting';
+import { FittedText } from '../ui/FittedText';
 
 interface EventCardProps {
   event: Event;
@@ -16,7 +17,7 @@ interface EventCardProps {
 export const EventCard = memo(function EventCard({ event, total, participantCount, onPress, onDeletePress }: EventCardProps) {
   const colors = useThemeColors();
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface }]}>
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
       <TouchableOpacity
         style={styles.contentArea}
         onPress={onPress}
@@ -26,18 +27,18 @@ export const EventCard = memo(function EventCard({ event, total, participantCoun
           <MaterialCommunityIcons name="calendar-star" size={24} color={colors.accent} />
         </View>
         <View style={styles.info}>
-          <Text style={[styles.name, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
+          <FittedText style={[styles.name, { color: colors.text }]} numberOfLines={2} minimumFontScale={0.82}>
             {event.name}
-          </Text>
-          <Text style={[styles.date, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
+          </FittedText>
+          <FittedText style={[styles.date, { color: colors.textMuted }]} minimumFontScale={0.82}>
             {formatDate(event.date)}
-          </Text>
+          </FittedText>
           <View style={styles.pills}>
             <View style={[styles.pill, { backgroundColor: colors.surfaceElevated }]}>
               <MaterialCommunityIcons name="account-group-outline" size={12} color={colors.textMuted} style={styles.pillIcon} />
-              <Text style={[styles.pillText, { color: colors.textMuted }]}>
+              <FittedText style={[styles.pillText, { color: colors.textMuted }]} minimumFontScale={0.8}>
                 {participantCount}
-              </Text>
+              </FittedText>
             </View>
           </View>
         </View>
@@ -71,6 +72,7 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.sm,
     overflow: 'hidden',
+    borderWidth: 1,
   },
   contentArea: {
     flex: 1,

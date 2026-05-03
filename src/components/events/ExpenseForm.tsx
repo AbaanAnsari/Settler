@@ -1,9 +1,10 @@
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import React, { memo, useEffect, useState } from 'react';
-import { Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Expense } from '../../store/eventStore';
 import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
 import { DateField } from '../ui/DateField';
+import { FittedText } from '../ui/FittedText';
 
 interface ExpenseFormProps {
   eventId: string;
@@ -52,7 +53,7 @@ export const ExpenseForm = memo(function ExpenseForm({ eventId, suggestedNames =
   return (
     <View style={styles.container}>
       {/* Person name */}
-      <Text style={[styles.label, { color: colors.textSecondary }]}>Who Paid?</Text>
+      <FittedText style={[styles.label, { color: colors.textSecondary }]} minimumFontScale={0.82}>Who Paid?</FittedText>
       <BottomSheetTextInput
         style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, color: colors.text }]}
         placeholder="e.g. Arjun"
@@ -69,15 +70,15 @@ export const ExpenseForm = memo(function ExpenseForm({ eventId, suggestedNames =
               style={styles.chip}
               onPress={() => setPersonName(n)}
             >
-              <Text style={[styles.chipText, { color: colors.accentLight }]} numberOfLines={1} ellipsizeMode="tail">
+              <FittedText style={[styles.chipText, { color: colors.accentLight }]} minimumFontScale={0.78}>
                 {n}
-              </Text>
+              </FittedText>
             </TouchableOpacity>
           ))}
         </View>
       )}
 
-      <Text style={[styles.label, { color: colors.textSecondary }]}>Amount (₹)</Text>
+      <FittedText style={[styles.label, { color: colors.textSecondary }]} minimumFontScale={0.82}>Amount (Rs)</FittedText>
       <BottomSheetTextInput
         style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, color: colors.text }]}
         placeholder="0.00"
@@ -87,7 +88,7 @@ export const ExpenseForm = memo(function ExpenseForm({ eventId, suggestedNames =
         keyboardType="decimal-pad"
       />
 
-      <Text style={[styles.label, { color: colors.textSecondary }]}>Reason</Text>
+      <FittedText style={[styles.label, { color: colors.textSecondary }]} minimumFontScale={0.82}>Reason</FittedText>
       <BottomSheetTextInput
         style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, color: colors.text }]}
         placeholder="e.g. Hotel booking"
@@ -101,14 +102,14 @@ export const ExpenseForm = memo(function ExpenseForm({ eventId, suggestedNames =
 
       <View style={styles.actions}>
         <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: colors.surfaceBorder }]} onPress={handleCancel}>
-          <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
+          <FittedText style={[styles.cancelText, { color: colors.textSecondary }]} minimumFontScale={0.78}>Cancel</FittedText>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.submitBtn, { backgroundColor: colors.accent }, !isValid && styles.disabled]}
           onPress={handleSubmit}
           disabled={!isValid}
         >
-          <Text style={styles.submitText}>{initial ? 'Save Changes' : 'Add Expense'}</Text>
+          <FittedText style={styles.submitText} minimumFontScale={0.74}>{initial ? 'Save Changes' : 'Add Expense'}</FittedText>
         </TouchableOpacity>
       </View>
     </View>

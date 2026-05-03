@@ -8,6 +8,7 @@ import { EventForm } from '../../../components/events/EventForm';
 import BottomSheet from '../../../components/ui/BottomSheet';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { FAB } from '../../../components/ui/FAB';
+import { FittedText } from '../../../components/ui/FittedText';
 import { type Event, useEventStore } from '../../../store/eventStore';
 import { computeEventSummary } from '../../../utils/balanceCalc';
 import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../../utils/colors';
@@ -65,15 +66,18 @@ export default function EventsScreen() {
     <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+          <FittedText style={[styles.title, { color: colors.text }]} minimumFontScale={0.78}>
             Events
-          </Text>
+          </FittedText>
           <View style={[styles.countBadge, { backgroundColor: colors.surfaceElevated }]}>
-            <Text style={[styles.countText, { color: colors.text }]} numberOfLines={1}>
+            <FittedText style={[styles.countText, { color: colors.text }]} minimumFontScale={0.8}>
               {events.length}
-            </Text>
+            </FittedText>
           </View>
         </View>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+          Trips, dinners, and shared costs
+        </Text>
       </View>
 
       <FlatList
@@ -120,11 +124,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'baseline',
   },
   title: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold },
-  subtitle: { fontSize: FontSize.sm },
+  subtitle: { fontSize: FontSize.sm, marginTop: 2 },
   headerRow: { flexDirection: 'row', alignItems: 'center' },
   countBadge: {
     marginLeft: Spacing.sm,

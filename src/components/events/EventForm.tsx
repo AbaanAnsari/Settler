@@ -1,9 +1,10 @@
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import React, { memo, useEffect, useState } from 'react';
-import { Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Event } from '../../store/eventStore';
 import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
 import { DateField } from '../ui/DateField';
+import { FittedText } from '../ui/FittedText';
 
 interface EventFormProps {
   onSubmit: (data: Omit<Event, 'id'>) => void;
@@ -38,7 +39,7 @@ export const EventForm = memo(function EventForm({ onSubmit, onCancel, initial }
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: colors.textSecondary }]}>Event Name</Text>
+      <FittedText style={[styles.label, { color: colors.textSecondary }]} minimumFontScale={0.82}>Event Name</FittedText>
       <BottomSheetTextInput
         style={[
           styles.input,
@@ -55,14 +56,14 @@ export const EventForm = memo(function EventForm({ onSubmit, onCancel, initial }
 
       <View style={styles.actions}>
         <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: colors.surfaceBorder }]} onPress={handleCancel}>
-          <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
+          <FittedText style={[styles.cancelText, { color: colors.textSecondary }]} minimumFontScale={0.78}>Cancel</FittedText>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.submitBtn, { backgroundColor: colors.accent }, !isValid && styles.disabled]}
           onPress={handleSubmit}
           disabled={!isValid}
         >
-          <Text style={styles.submitText}>{initial ? 'Save Changes' : 'Create Event'}</Text>
+          <FittedText style={styles.submitText} minimumFontScale={0.74}>{initial ? 'Save Changes' : 'Create Event'}</FittedText>
         </TouchableOpacity>
       </View>
     </View>

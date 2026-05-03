@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import type { PersonEventSummary } from '../../utils/balanceCalc';
 import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
 import { formatCurrency } from '../../utils/formatting';
+import { FittedText } from '../ui/FittedText';
 
 interface SummaryCardProps {
   summaries: PersonEventSummary[];
@@ -20,11 +21,11 @@ function getAvatarColor(name: string): string {
 export const SummaryCard = memo(function SummaryCard({ summaries, total }: SummaryCardProps) {
   const colors = useThemeColors();
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface }]}>
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
       <View style={[styles.header, { borderBottomColor: colors.separator }]}>
-        <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+        <FittedText style={[styles.headerTitle, { color: colors.text }]} minimumFontScale={0.8}>
           Balance Summary
-        </Text>
+        </FittedText>
         <View style={styles.totalBadge}>
           <Text
             style={[styles.totalText, { color: colors.accentLight }]}
@@ -49,9 +50,9 @@ export const SummaryCard = memo(function SummaryCard({ summaries, total }: Summa
               </Text>
             </View>
             <View style={styles.info}>
-              <Text style={[styles.name, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
+              <FittedText style={[styles.name, { color: colors.text }]} numberOfLines={2} minimumFontScale={0.82}>
                 {s.personName}
-              </Text>
+              </FittedText>
               <Text
                 style={[styles.paid, { color: colors.textMuted }]}
                 numberOfLines={2}
@@ -84,6 +85,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: Radius.lg,
     overflow: 'hidden',
+    borderWidth: 1,
   },
   header: {
     flexDirection: 'row',

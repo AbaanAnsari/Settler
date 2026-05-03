@@ -1,123 +1,167 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { memo, useRef, useState } from 'react';
+import Slider from '@react-native-community/slider';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { VoiceNote, VoiceNoteTag } from '../../store/voiceNoteStore';
 import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
 import { formatDuration, formatRelativeDate } from '../../utils/formatting';
+import { FittedText } from '../ui/FittedText';
 
 interface VoiceNoteCardProps {
   note: VoiceNote;
+  isPlaying: boolean;
+  onTogglePlay: (id: string) => void;
   onDeleteConfirmed: () => void;
 }
 
-export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDeleteConfirmed }: VoiceNoteCardProps) {
+export const VoiceNoteCard = memo(function VoiceNoteCard({
+  note,
+  isPlaying,
+  onTogglePlay,
+  onDeleteConfirmed,
+}: VoiceNoteCardProps) {
   const colors = useThemeColors();
-  const [isPlaying, setIsPlaying] = useState(false);
+
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  function handlePlayPause() {
+  // ▶️ Playback timer (SAFE)
+  useEffect(() => {
     if (isPlaying) {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      setIsPlaying(false);
-    } else {
-      setIsPlaying(true);
-      // Simulate progress for demo purposes
       intervalRef.current = setInterval(() => {
-        setProgress((p) => {
-          if (p >= 1) {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            setIsPlaying(false);
-            return 0;
-          }
-          return p + 1 / (note.duration || 30);
-        });
+        setProgress((p) => Math.min(p + 1 / (note.duration || 30), 1));
       }, 1000);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
-  }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isPlaying, note.duration]);
+
+  // ✅ Handle completion OUTSIDE render cycle
+  useEffect(() => {
+    if (progress >= 1 && isPlaying) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
+
+      onTogglePlay(note.id); // safe here
+      setProgress(0);
+    }
+  }, [progress, isPlaying]);
 
   function handleDelete() {
-    Alert.alert(
-      'Delete',
-      'Are you sure?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: onDeleteConfirmed },
-      ]
-    );
+    Alert.alert('Delete', 'Are you sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: onDeleteConfirmed },
+    ]);
   }
 
-  const barCount = 24;
+  const elapsed = Math.floor(progress * note.duration);
+
+  // 🎯 Slider seek
+  function handleSeek(value: number) {
+    setProgress(value);
+  }
+
   const tagStyle: Record<VoiceNoteTag, { bg: string; text: string }> = {
     Expense: { bg: colors.negativeBg, text: colors.negative },
     Reminder: { bg: 'rgba(251, 191, 36, 0.12)', text: colors.warning },
     General: { bg: colors.surfaceElevated, text: colors.textSecondary },
   };
-  const activeTagStyle = note.tag ? tagStyle[note.tag] : null;
+
+  const activeTag = note.tag ? tagStyle[note.tag] : null;
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface }]}>
-      {/* Play button */}
-      <TouchableOpacity style={styles.playBtn} onPress={handlePlayPause}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.surfaceBorder,
+        },
+      ]}
+    >
+      {/* ▶️ BIG PLAY BUTTON */}
+      <TouchableOpacity
+        onPress={() => onTogglePlay(note.id)}
+        style={styles.playBtn}
+        activeOpacity={0.7}
+      >
         <MaterialCommunityIcons
-          name={isPlaying ? 'pause' : 'play'}
-          size={22}
-          color={colors.accent}
+          name={isPlaying ? 'pause-circle' : 'play-circle'}
+          size={64}
+          color={colors.text}
         />
       </TouchableOpacity>
 
-      {/* Waveform + metadata */}
+      {/* 📄 CONTENT */}
       <View style={styles.content}>
-        <View style={styles.waveform}>
-          {Array.from({ length: barCount }).map((_, i) => {
-            const height = 4 + (Math.sin(i * 0.8 + 1) * 0.5 + 0.5) * 20;
-            const filled = i / barCount <= progress;
-            return (
-              <View
-                key={i}
-                style={[
-                  styles.bar,
-                  styles.barSpacing,
-                  { height, backgroundColor: filled ? colors.accent : colors.surfaceBorder },
-                ]}
-              />
-            );
-          })}
+        <FittedText style={[styles.title, { color: colors.text }]}>
+          {note.title}
+        </FittedText>
+
+        {/* META */}
+        <View style={styles.metaRow}>
+          <FittedText style={[styles.metaText, { color: colors.textMuted }]} adjustsFontSizeToFit>
+            {formatDuration(note.duration)}
+          </FittedText>
+
+          <Text style={[styles.dot,styles.metaGap, { color: colors.textMuted }]}>·</Text>
+
+          <FittedText style={[styles.metaText, { color: colors.textMuted }]}>
+            {formatRelativeDate(note.date)}
+          </FittedText>
+
+          {activeTag && (
+            <>
+              <View style={[styles.tag, { backgroundColor: activeTag.bg }]}>
+                <FittedText style={[styles.tagText, { color: activeTag.text }]}>
+                  {note.tag}
+                </FittedText>
+              </View>
+            </>
+          )}
         </View>
-        <View style={styles.meta}>
-          <Text
-            style={[styles.title, { color: colors.text }]}
-            numberOfLines={2}
-            ellipsizeMode="tail"
-            adjustsFontSizeToFit
-            minimumFontScale={0.9}
-          >
-            {note.title}
-          </Text>
-          <View style={styles.metaRow}>
-            <Text style={[styles.duration, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
-              {formatDuration(note.duration)}
-            </Text>
-            <Text style={[styles.dot, styles.metaGap, { color: colors.textMuted }]}>·</Text>
-            <Text style={[styles.date, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
-              {formatRelativeDate(note.date)}
-            </Text>
-            {activeTagStyle && note.tag ? (
-              <>
-                <Text style={[styles.dot, styles.metaGap, { color: colors.textMuted }]}>·</Text>
-                <View style={[styles.tag, { backgroundColor: activeTagStyle.bg }]}>
-                  <Text style={[styles.tagText, { color: activeTagStyle.text }]} numberOfLines={1} ellipsizeMode="tail">
-                    {note.tag}
-                  </Text>
-                </View>
-              </>
-            ) : null}
+
+        {/* PROGRESS + SLIDER */}
+        {isPlaying && (
+          <View style={styles.progressContainer}>
+            <Slider
+              value={progress}
+              onValueChange={handleSeek}
+              minimumValue={0}
+              maximumValue={1}
+              minimumTrackTintColor={colors.accent}
+              maximumTrackTintColor={colors.surfaceBorder}
+              thumbTintColor={colors.accent}
+            />
+
+            <View style={styles.timeRow}>
+              <Text style={[styles.timeText, { color: colors.textMuted }]} adjustsFontSizeToFit>
+                {formatDuration(elapsed)}
+              </Text>
+              <Text style={[styles.timeText, { color: colors.textMuted }]} adjustsFontSizeToFit>
+                {formatDuration(note.duration)}
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
       </View>
 
-      <TouchableOpacity style={styles.trashBtn} onPress={handleDelete} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel="Delete voice note">
-        <MaterialCommunityIcons name="trash-can-outline" size={20} color={colors.textMuted} />
+      {/* 🗑 DELETE */}
+      <TouchableOpacity
+        style={styles.trashbtn}
+        onPress={handleDelete}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <MaterialCommunityIcons
+          name="trash-can-outline"
+          size={26}
+          color={colors.textMuted}
+        />
       </TouchableOpacity>
     </View>
   );
@@ -128,82 +172,72 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: Radius.lg,
-    padding: Spacing.md,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
     marginHorizontal: Spacing.md,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
   },
+
   playBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(124,111,247,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.sm,
-    flexShrink: 0,
+    marginRight: Spacing.md,
   },
+
   content: {
     flex: 1,
-    minWidth: 0,
-    flexShrink: 1,
   },
-  waveform: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 28,
-    marginBottom: 6,
-  },
-  barSpacing: {
-    marginRight: 2,
-  },
-  bar: {
-    width: 3,
-    borderRadius: 2,
-  },
-  meta: {
-    minWidth: 0,
-  },
+
   title: {
-    fontSize: FontSize.sm,
+    fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
-    marginBottom: 2,
   },
+
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    minWidth: 0,
+    marginTop: 6,
   },
-  metaGap: {
-    marginHorizontal: 4,
+
+  metaText: {
+    fontSize: FontSize.sm,
   },
-  duration: {
-    fontSize: FontSize.xs,
-    flexShrink: 0,
-  },
+
   dot: {
     fontSize: FontSize.xs,
     flexShrink: 0,
   },
-  date: {
-    fontSize: FontSize.xs,
-    flexShrink: 1,
-    minWidth: 0,
+  metaGap: {
+    marginHorizontal: 4,
   },
+
   tag: {
     borderRadius: Radius.full,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    flexShrink: 1,
-    minWidth: 0,
+    marginHorizontal:4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
+
   tagText: {
-    fontSize: 10,
+    fontSize: FontSize.xs,
     fontWeight: FontWeight.semibold,
   },
-  trashBtn: {
-    paddingLeft: Spacing.sm,
-    justifyContent: 'center',
-    alignItems: 'center',
+
+  progressContainer: {
+    marginTop: Spacing.md,
+  },
+
+  timeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+
+  timeText: {
+    fontSize: FontSize.sm,
+  },
+
+  trashbtn: {
+    marginLeft: Spacing.md,
   },
 });

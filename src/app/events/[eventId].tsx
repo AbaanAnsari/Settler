@@ -19,6 +19,7 @@ import { SummaryCard } from '../../components/events/SummaryCard';
 import BottomSheet from '../../components/ui/BottomSheet';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { FAB } from '../../components/ui/FAB';
+import { FittedText } from '../../components/ui/FittedText';
 import { Expense, useEventStore } from '../../store/eventStore';
 import { selectEventExpenses } from '../../store/selectors';
 import { computeEventSummary } from '../../utils/balanceCalc';
@@ -82,6 +83,16 @@ export default function EventDetailScreen() {
     );
   }, [deleteExpense, editingExpense]);
 
+  React.useEffect(() => {
+    const onBackPress = () => {
+      router.back();
+      return true;
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, []);
+
   if (!event) {
     return (
       <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
@@ -104,16 +115,6 @@ export default function EventDetailScreen() {
     sheetRef.current?.expand();
   }
 
-  React.useEffect(() => {
-    const onBackPress = () => {
-      router.back();
-      return true;
-    };
-
-    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => subscription.remove();
-  }, []);
-
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       {/* Header */}
@@ -122,12 +123,12 @@ export default function EventDetailScreen() {
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.topBarCenter}>
-          <Text style={[styles.eventName, { color: colors.text, width: '100%', textAlign: 'center' }]} numberOfLines={2} ellipsizeMode="tail">
+          <FittedText style={[styles.eventName, { color: colors.text, width: '100%', textAlign: 'center' }]} numberOfLines={2} minimumFontScale={0.78}>
             {event.name}
-          </Text>
-          <Text style={[styles.eventDate, { color: colors.textMuted, width: '100%', textAlign: 'center' }]}>
+          </FittedText>
+          <FittedText style={[styles.eventDate, { color: colors.textMuted, width: '100%', textAlign: 'center' }]} minimumFontScale={0.82}>
             {formatDate(event.date)}
-          </Text>
+          </FittedText>
         </View>
         <View style={{ width: 40 }} />
       </View>
@@ -135,7 +136,7 @@ export default function EventDetailScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Stats row */}
         <View style={styles.statsRow}>
-          <View style={[styles.statCard, styles.statCardFirst, { backgroundColor: colors.surface }]}>
+          <View style={[styles.statCard, styles.statCardFirst, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
             <Text
               style={[styles.statValue, { color: colors.text }]}
               adjustsFontSizeToFit
@@ -155,7 +156,7 @@ export default function EventDetailScreen() {
               Total
             </Text>
           </View>
-          <View style={[styles.statCard, styles.statCardMid, { backgroundColor: colors.surface }]}>
+          <View style={[styles.statCard, styles.statCardMid, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
             <Text
               style={[styles.statValue, { color: colors.text }]}
               adjustsFontSizeToFit
@@ -175,7 +176,7 @@ export default function EventDetailScreen() {
               People
             </Text>
           </View>
-          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
             <Text
               style={[styles.statValue, { color: colors.text }]}
               adjustsFontSizeToFit
@@ -206,10 +207,10 @@ export default function EventDetailScreen() {
 
         {/* Expense Ledger */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+          <FittedText style={[styles.sectionTitle, { color: colors.text }]} minimumFontScale={0.82}>
             Expense Entries
-          </Text>
-          <View style={[styles.ledgerCard, { backgroundColor: colors.surface }]}>
+          </FittedText>
+          <View style={[styles.ledgerCard, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
             {sortedExpenses.length === 0 ? (
               <EmptyState
                 icon="receipt"
@@ -287,6 +288,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
   },
   statCardFirst: {
     marginRight: Spacing.sm,
@@ -305,5 +307,6 @@ const styles = StyleSheet.create({
   ledgerCard: {
     borderRadius: Radius.lg,
     overflow: 'hidden',
+    borderWidth: 1,
   },
 });

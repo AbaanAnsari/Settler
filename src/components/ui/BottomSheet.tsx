@@ -1,5 +1,5 @@
 import React, { forwardRef, ReactNode, useCallback, useImperativeHandle, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
 import BottomSheetLib, {
   BottomSheetScrollView,
   BottomSheetBackdrop,
@@ -8,6 +8,7 @@ import BottomSheetLib, {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
+import { FittedText } from './FittedText';
 
 interface BottomSheetProps {
   snapPoints?: (string | number)[];
@@ -67,7 +68,7 @@ const BottomSheet = forwardRef<BottomSheetLib, BottomSheetProps>(
         >
           {title || onClose ? (
             <View style={styles.header}>
-              {title ? <Text style={[styles.title, { color: colors.text }]}>{title}</Text> : <View />}
+              {title ? <FittedText style={[styles.title, { color: colors.text }]} minimumFontScale={0.78}>{title}</FittedText> : <View />}
               {onClose ? (
                 <TouchableOpacity
                   onPress={() => bottomSheetRef.current?.close()}
@@ -114,6 +115,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xl,
     fontWeight: FontWeight.bold,
+    flex: 1,
+    minWidth: 0,
+    marginRight: Spacing.sm,
   },
   closeBtn: {
     width: 32,

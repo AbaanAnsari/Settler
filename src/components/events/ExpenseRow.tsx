@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Expense } from '../../store/eventStore';
 import { FontSize, FontWeight, Spacing, useThemeColors } from '../../utils/colors';
 import { formatCurrency, formatDate } from '../../utils/formatting';
+import { FittedText } from '../ui/FittedText';
 
 interface ExpenseRowProps {
   expense: Expense;
@@ -36,15 +37,15 @@ export const ExpenseRow = memo(function ExpenseRow({ expense, onPress, onDeleteP
         </Text>
       </View>
       <View style={styles.info}>
-        <Text style={[styles.person, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
+        <FittedText style={[styles.person, { color: colors.text }]} numberOfLines={2} minimumFontScale={0.82}>
           {expense.personName}
-        </Text>
-        <Text style={[styles.reason, { color: colors.textSecondary }]} numberOfLines={2} ellipsizeMode="tail">
+        </FittedText>
+        <FittedText style={[styles.reason, { color: colors.textSecondary }]} numberOfLines={2} minimumFontScale={0.82}>
           {expense.reason}
-        </Text>
-        <Text style={[styles.date, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
+        </FittedText>
+        <FittedText style={[styles.date, { color: colors.textMuted }]} minimumFontScale={0.82}>
           {formatDate(expense.date)}
-        </Text>
+        </FittedText>
       </View>
       <Text
         style={[styles.amount, { color: colors.text }]}

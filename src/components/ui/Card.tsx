@@ -16,7 +16,11 @@ export function Card({ children, style, elevated = false, padding = Spacing.md }
       style={[
         styles.card,
         elevated && styles.elevated,
-        { padding, backgroundColor: elevated ? colors.surfaceElevated : colors.surface },
+        {
+          padding,
+          backgroundColor: elevated ? colors.surfaceElevated : colors.surface,
+          borderColor: colors.surfaceBorder,
+        },
         style,
       ]}
     >
@@ -27,13 +31,14 @@ export function Card({ children, style, elevated = false, padding = Spacing.md }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: Radius.lg,
+    borderRadius: Radius.md,
+    borderWidth: 1,
   },
   elevated: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    elevation: 5,
   },
 });

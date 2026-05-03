@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, ViewStyle } from 'react-native';
+import { StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -8,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontSize, FontWeight, Spacing, useThemeColors } from '../../utils/colors';
+import { FittedText } from './FittedText';
 
 interface FABProps {
   onPress: () => void;
@@ -49,7 +50,7 @@ export function FAB({ onPress, label = 'Add', icon = 'plus', style }: FABProps) 
       activeOpacity={1}
     >
       <MaterialCommunityIcons name={icon} size={20} color="#fff" />
-      {label ? <Text style={[styles.label, styles.labelSpacing]} numberOfLines={1} ellipsizeMode="tail">{label}</Text> : null}
+      {label ? <FittedText style={[styles.label, styles.labelSpacing]} minimumFontScale={0.76}>{label}</FittedText> : null}
     </AnimatedTouchable>
   );
 }
@@ -68,12 +69,14 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
     zIndex: 100,
+    maxWidth: '64%',
+    minHeight: 48,
   },
   label: {
     color: '#fff',
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
-    letterSpacing: 0.2,
+    letterSpacing: 0,
     flexShrink: 1,
     minWidth: 0,
   },

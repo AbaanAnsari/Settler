@@ -5,6 +5,7 @@ import type { Person, Transaction } from '../../store/debtStore';
 import { computePersonBalance } from '../../utils/balanceCalc';
 import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
 import { formatCurrency } from '../../utils/formatting';
+import { FittedText } from '../ui/FittedText';
 
 interface PersonCardProps {
   person: Person;
@@ -19,7 +20,7 @@ export const PersonCard = memo(function PersonCard({ person, transactions, onPre
   const isPositive = net >= 0;
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface }]}>
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
       <TouchableOpacity
         style={styles.contentArea}
         onPress={onPress}
@@ -33,9 +34,9 @@ export const PersonCard = memo(function PersonCard({ person, transactions, onPre
       </View>
 
       <View style={styles.info}>
-        <Text style={[styles.name, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
+        <FittedText style={[styles.name, { color: colors.text }]} numberOfLines={2} minimumFontScale={0.82}>
           {person.name}
-        </Text>
+        </FittedText>
         <View style={styles.subRow}>
           {youGet > 0 && (
             <Text
@@ -45,7 +46,7 @@ export const PersonCard = memo(function PersonCard({ person, transactions, onPre
               adjustsFontSizeToFit
               minimumFontScale={0.9}
             >
-              ↑ {formatCurrency(youGet)}
+              Get {formatCurrency(youGet)}
             </Text>
           )}
           {youOwe > 0 && (
@@ -56,7 +57,7 @@ export const PersonCard = memo(function PersonCard({ person, transactions, onPre
               adjustsFontSizeToFit
               minimumFontScale={0.9}
             >
-              ↓ {formatCurrency(youOwe)}
+              Owe {formatCurrency(youOwe)}
             </Text>
           )}
           {transactions.length === 0 && (
@@ -98,6 +99,7 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.sm,
     overflow: 'hidden',
+    borderWidth: 1,
   },
   contentArea: {
     flex: 1,

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Text, StyleSheet, TextStyle } from 'react-native';
+import { StyleSheet, TextStyle } from 'react-native';
 import { Spacing, FontSize, FontWeight, useThemeColors } from '../../utils/colors';
+import { FittedText } from './FittedText';
 
 interface BadgeProps {
   value: string;
@@ -31,16 +32,17 @@ export function Badge({ value, type = 'neutral', size = 'md', style, textStyle }
   const paddingV = { sm: 2, md: 4, lg: 6 }[size];
 
   return (
-    <Text
+    <FittedText
       style={[
         styles.base,
         { backgroundColor: bg, color, fontSize, paddingHorizontal: paddingH, paddingVertical: paddingV },
         style,
         textStyle,
       ]}
+      minimumFontScale={0.76}
     >
       {value}
-    </Text>
+    </FittedText>
   );
 }
 

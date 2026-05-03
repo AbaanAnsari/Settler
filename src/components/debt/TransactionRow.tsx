@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   },
 
   typeText: {
-    fontSize: FontSize.xs, // 🔥 aligned
+    fontSize: FontSize.xs,
     fontWeight: FontWeight.bold,
     letterSpacing: 0.5,
   },
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   right: {
     alignItems: 'flex-end',
     flexShrink: 0,
-    minWidth: 70, // 🔥 prevents compression on Expo
+    minWidth: 70,
   },
 
   amount: {
