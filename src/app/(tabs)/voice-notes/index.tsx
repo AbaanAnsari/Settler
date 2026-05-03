@@ -1,20 +1,20 @@
 import BottomSheetLib from '@gorhom/bottom-sheet';
 import React, { useCallback, useRef, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomSheet from '../../../components/ui/BottomSheet';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { FAB } from '../../../components/ui/FAB';
 import { RecordingSheet } from '../../../components/voice-notes/RecordingSheet';
 import { VoiceNoteCard } from '../../../components/voice-notes/VoiceNoteCard';
-import { useVoiceNoteStore, VoiceNoteTag } from '../../../store/voiceNoteStore';
+import { useVoiceNoteStore, type VoiceNote, VoiceNoteTag } from '../../../store/voiceNoteStore';
 import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../../utils/colors';
 import { toISOString } from '../../../utils/formatting';
 
 export default function VoiceNotesScreen() {
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
-  const { notes, addNote, deleteNote } = useVoiceNoteStore();
+  const { notes, addNote, deleteVoiceNote } = useVoiceNoteStore();
   const sheetRef = useRef<BottomSheetLib>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -26,24 +26,21 @@ export default function VoiceNotesScreen() {
     sheetRef.current?.close();
   }, [addNote]);
 
-  const handleDelete = useCallback((id: string) => {
-    Alert.alert('Delete Note', 'Are you sure you want to delete this voice note?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteNote(id) },
-    ]);
-  }, [deleteNote]);
-
-  const renderItem = useCallback(({ item }: { item: any }) => (
-    <VoiceNoteCard note={item} onDelete={() => handleDelete(item.id)} />
-  ), [handleDelete]);
+  const renderItem = useCallback(({ item }: { item: VoiceNote }) => (
+    <VoiceNoteCard note={item} onDeleteConfirmed={() => { void deleteVoiceNote(item.id); }} />
+  ), [deleteVoiceNote]);
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <Text style={[styles.title, { color: colors.text }]}>Voice Notes</Text>
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+            Voice Notes
+          </Text>
           <View style={[styles.countBadge, { backgroundColor: colors.surfaceElevated }]}>
-            <Text style={[styles.countText, { color: colors.text }]}>{notes.length}</Text>
+            <Text style={[styles.countText, { color: colors.text }]} numberOfLines={1}>
+              {notes.length}
+            </Text>
           </View>
         </View>
       </View>
@@ -92,12 +89,12 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.sm,
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: Spacing.sm,
   },
   title: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold },
   subtitle: { fontSize: FontSize.sm },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  headerRow: { flexDirection: 'row', alignItems: 'center' },
   countBadge: {
+    marginLeft: Spacing.sm,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: Radius.full,

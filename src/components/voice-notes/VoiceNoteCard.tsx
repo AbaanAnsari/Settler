@@ -1,5 +1,5 @@
 import React, { useState, useRef, memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Pressable, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
 import { formatDuration, formatRelativeDate } from '../../utils/formatting';
@@ -7,10 +7,10 @@ import type { VoiceNote, VoiceNoteTag } from '../../store/voiceNoteStore';
 
 interface VoiceNoteCardProps {
   note: VoiceNote;
-  onDelete: () => void;
+  onDeleteConfirmed: () => void;
 }
 
-export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDelete }: VoiceNoteCardProps) {
+export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDeleteConfirmed }: VoiceNoteCardProps) {
   const colors = useThemeColors();
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -36,6 +36,17 @@ export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDelete }: Voi
     }
   }
 
+  function handleLongPressDelete() {
+    Alert.alert(
+      'Delete',
+      'Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: onDeleteConfirmed },
+      ]
+    );
+  }
+
   const barCount = 24;
   const tagStyle: Record<VoiceNoteTag, { bg: string; text: string }> = {
     Expense: { bg: colors.negativeBg, text: colors.negative },
@@ -45,7 +56,11 @@ export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDelete }: Voi
   const activeTagStyle = note.tag ? tagStyle[note.tag] : null;
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface }]}>
+    <Pressable
+      onLongPress={handleLongPressDelete}
+      delayLongPress={450}
+      style={[styles.card, { backgroundColor: colors.surface }]}
+    >
       {/* Play button */}
       <TouchableOpacity style={styles.playBtn} onPress={handlePlayPause}>
         <MaterialCommunityIcons
@@ -66,6 +81,7 @@ export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDelete }: Voi
                 key={i}
                 style={[
                   styles.bar,
+                  styles.barSpacing,
                   { height, backgroundColor: filled ? colors.accent : colors.surfaceBorder },
                 ]}
               />
@@ -73,28 +89,37 @@ export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDelete }: Voi
           })}
         </View>
         <View style={styles.meta}>
-          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{note.title}</Text>
+          <Text
+            style={[styles.title, { color: colors.text }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            adjustsFontSizeToFit
+            minimumFontScale={0.9}
+          >
+            {note.title}
+          </Text>
           <View style={styles.metaRow}>
-            <Text style={[styles.duration, { color: colors.textMuted }]}>{formatDuration(note.duration)}</Text>
-            <Text style={[styles.dot, { color: colors.textMuted }]}>·</Text>
-            <Text style={[styles.date, { color: colors.textMuted }]}>{formatRelativeDate(note.date)}</Text>
+            <Text style={[styles.duration, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
+              {formatDuration(note.duration)}
+            </Text>
+            <Text style={[styles.dot, styles.metaGap, { color: colors.textMuted }]}>·</Text>
+            <Text style={[styles.date, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
+              {formatRelativeDate(note.date)}
+            </Text>
             {activeTagStyle && note.tag ? (
               <>
-                <Text style={[styles.dot, { color: colors.textMuted }]}>·</Text>
+                <Text style={[styles.dot, styles.metaGap, { color: colors.textMuted }]}>·</Text>
                 <View style={[styles.tag, { backgroundColor: activeTagStyle.bg }]}>
-                  <Text style={[styles.tagText, { color: activeTagStyle.text }]}>{note.tag}</Text>
+                  <Text style={[styles.tagText, { color: activeTagStyle.text }]} numberOfLines={1} ellipsizeMode="tail">
+                    {note.tag}
+                  </Text>
                 </View>
               </>
             ) : null}
           </View>
         </View>
       </View>
-
-      {/* Delete */}
-      <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
-        <MaterialCommunityIcons name="trash-can-outline" size={18} color={colors.textMuted} />
-      </TouchableOpacity>
-    </View>
+    </Pressable>
   );
 });
 
@@ -106,7 +131,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.sm,
-    gap: Spacing.sm,
   },
   playBtn: {
     width: 44,
@@ -115,31 +139,66 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(124,111,247,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: Spacing.sm,
+    flexShrink: 0,
   },
-  content: { flex: 1, gap: 6 },
+  content: {
+    flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
+  },
   waveform: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
     height: 28,
+    marginBottom: 6,
+  },
+  barSpacing: {
+    marginRight: 2,
   },
   bar: {
     width: 3,
     borderRadius: 2,
   },
-  meta: { gap: 2 },
-  title: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  duration: { fontSize: FontSize.xs },
-  dot: { fontSize: FontSize.xs },
-  date: { fontSize: FontSize.xs },
+  meta: {
+    minWidth: 0,
+  },
+  title: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
+    marginBottom: 2,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    minWidth: 0,
+  },
+  metaGap: {
+    marginHorizontal: 4,
+  },
+  duration: {
+    fontSize: FontSize.xs,
+    flexShrink: 0,
+  },
+  dot: {
+    fontSize: FontSize.xs,
+    flexShrink: 0,
+  },
+  date: {
+    fontSize: FontSize.xs,
+    flexShrink: 1,
+    minWidth: 0,
+  },
   tag: {
     borderRadius: Radius.full,
     paddingHorizontal: 6,
     paddingVertical: 2,
+    flexShrink: 1,
+    minWidth: 0,
   },
-  tagText: { fontSize: 10, fontWeight: FontWeight.semibold },
-  deleteBtn: {
-    padding: 6,
+  tagText: {
+    fontSize: 10,
+    fontWeight: FontWeight.semibold,
   },
 });

@@ -7,10 +7,11 @@ import type { TransactionWithBalance } from '../../utils/balanceCalc';
 interface TransactionRowProps {
   tx: TransactionWithBalance;
   onPress: () => void;
+  onLongPress?: () => void;
   isLast?: boolean;
 }
 
-export const TransactionRow = memo(function TransactionRow({ tx, onPress, isLast }: TransactionRowProps) {
+export const TransactionRow = memo(function TransactionRow({ tx, onPress, onLongPress, isLast }: TransactionRowProps) {
   const colors = useThemeColors();
   const isGive = tx.type === 'give';
   const balancePositive = tx.runningBalance >= 0;
@@ -19,27 +20,49 @@ export const TransactionRow = memo(function TransactionRow({ tx, onPress, isLast
     <TouchableOpacity
       style={[styles.row, { borderBottomColor: colors.separator }, isLast && styles.lastRow]}
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={450}
       activeOpacity={0.7}
     >
       {/* Type indicator pill */}
       <View style={[styles.typePill, { backgroundColor: isGive ? colors.positiveBg : colors.negativeBg }]}>
-        <Text style={[styles.typeText, { color: isGive ? colors.positive : colors.negative }]}>
+        <Text
+          style={[styles.typeText, { color: isGive ? colors.positive : colors.negative }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {isGive ? 'GAVE' : 'GOT'}
         </Text>
       </View>
 
       {/* Description + Date */}
       <View style={styles.middle}>
-        <Text style={[styles.description, { color: colors.text }]} numberOfLines={1}>{tx.description}</Text>
-        <Text style={[styles.date, { color: colors.textMuted }]}>{formatDateShort(tx.date)}</Text>
+        <Text style={[styles.description, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+          {tx.description}
+        </Text>
+        <Text style={[styles.date, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
+          {formatDateShort(tx.date)}
+        </Text>
       </View>
 
       {/* Amount + Running Balance */}
       <View style={styles.right}>
-        <Text style={[styles.amount, { color: isGive ? colors.positive : colors.negative }]}>
+        <Text
+          style={[styles.amount, { color: isGive ? colors.positive : colors.negative }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
+        >
           {isGive ? '+' : '-'}{formatCurrency(tx.amount)}
         </Text>
-        <Text style={[styles.balance, { color: balancePositive ? colors.positive : colors.negative }]}>
+        <Text
+          style={[styles.balance, { color: balancePositive ? colors.positive : colors.negative }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
+        >
           Bal: {balancePositive ? '' : '-'}{formatCurrency(Math.abs(tx.runningBalance))}
         </Text>
       </View>
@@ -54,7 +77,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm + 4,
     paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
-    gap: Spacing.sm,
   },
   lastRow: {
     borderBottomWidth: 0,
@@ -65,6 +87,8 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     minWidth: 44,
     alignItems: 'center',
+    marginRight: Spacing.sm,
+    flexShrink: 0,
   },
   typeText: {
     fontSize: 10,
@@ -73,22 +97,27 @@ const styles = StyleSheet.create({
   },
   middle: {
     flex: 1,
-    gap: 3,
+    minWidth: 0,
+    flexShrink: 1,
+    marginRight: Spacing.sm,
   },
   description: {
     fontSize: FontSize.sm,
     fontWeight: FontWeight.medium,
+    marginBottom: 3,
   },
   date: {
     fontSize: FontSize.xs,
   },
   right: {
     alignItems: 'flex-end',
-    gap: 3,
+    flexShrink: 0,
+    minWidth: 72,
   },
   amount: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
+    marginBottom: 3,
   },
   balance: {
     fontSize: FontSize.xs,

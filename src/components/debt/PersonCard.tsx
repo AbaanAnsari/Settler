@@ -10,33 +10,60 @@ interface PersonCardProps {
   person: Person;
   transactions: Transaction[];
   onPress: () => void;
+  onLongPress?: () => void;
 }
 
-export const PersonCard = memo(function PersonCard({ person, transactions, onPress }: PersonCardProps) {
+export const PersonCard = memo(function PersonCard({ person, transactions, onPress, onLongPress }: PersonCardProps) {
   const colors = useThemeColors();
   const { net, youGet, youOwe } = computePersonBalance(transactions);
   const isPositive = net >= 0;
 
   return (
-    <TouchableOpacity style={[styles.card, { backgroundColor: colors.surface }]} onPress={onPress} activeOpacity={0.75}>
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: colors.surface }]}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={450}
+      activeOpacity={0.75}
+    >
       {/* Left: Avatar + Name */}
       <View style={[styles.avatar, { backgroundColor: person.color + '28' }]}>
-        <Text style={[styles.avatarText, { color: person.color }]}>
+        <Text style={[styles.avatarText, { color: person.color }]} numberOfLines={1} ellipsizeMode="tail">
           {person.name.charAt(0).toUpperCase()}
         </Text>
       </View>
 
       <View style={styles.info}>
-        <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>{person.name}</Text>
+        <Text style={[styles.name, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+          {person.name}
+        </Text>
         <View style={styles.subRow}>
           {youGet > 0 && (
-            <Text style={[styles.gets, { color: colors.positive }]}>↑ {formatCurrency(youGet)}</Text>
+            <Text
+              style={[styles.gets, styles.subRowItem, { color: colors.positive }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              adjustsFontSizeToFit
+              minimumFontScale={0.9}
+            >
+              ↑ {formatCurrency(youGet)}
+            </Text>
           )}
           {youOwe > 0 && (
-            <Text style={[styles.owes, { color: colors.negative }]}>↓ {formatCurrency(youOwe)}</Text>
+            <Text
+              style={[styles.owes, styles.subRowItem, { color: colors.negative }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              adjustsFontSizeToFit
+              minimumFontScale={0.9}
+            >
+              ↓ {formatCurrency(youOwe)}
+            </Text>
           )}
           {transactions.length === 0 && (
-            <Text style={[styles.noTx, { color: colors.textMuted }]}>No transactions yet</Text>
+            <Text style={[styles.noTx, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
+              No transactions yet
+            </Text>
           )}
         </View>
       </View>
@@ -44,7 +71,13 @@ export const PersonCard = memo(function PersonCard({ person, transactions, onPre
       {/* Right: Net balance */}
       <View style={styles.netWrap}>
         <View style={[styles.netBadge, { backgroundColor: isPositive ? colors.positiveBg : colors.negativeBg }]}>
-          <Text style={[styles.netAmount, { color: isPositive ? colors.positive : colors.negative }]}>
+          <Text
+            style={[styles.netAmount, { color: isPositive ? colors.positive : colors.negative }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
             {net === 0 ? 'Settled' : (isPositive ? '+' : '-') + formatCurrency(Math.abs(net))}
           </Text>
         </View>
@@ -62,7 +95,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.sm,
-    gap: Spacing.sm,
   },
   avatar: {
     width: 48,
@@ -70,6 +102,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: Spacing.sm,
+    flexShrink: 0,
   },
   avatarText: {
     fontSize: FontSize.xl,
@@ -77,15 +111,22 @@ const styles = StyleSheet.create({
   },
   info: {
     flex: 1,
-    gap: 4,
+    minWidth: 0,
+    flexShrink: 1,
+    marginRight: Spacing.sm,
   },
   name: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
+    marginBottom: 4,
   },
   subRow: {
     flexDirection: 'row',
-    gap: Spacing.sm,
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  subRowItem: {
+    marginRight: Spacing.sm,
   },
   gets: {
     fontSize: FontSize.xs,
@@ -99,20 +140,23 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
   },
   netWrap: {
-    alignItems: 'flex-end',
+    alignItems: 'center',
     flexDirection: 'row',
-    gap: 2,
+    flexShrink: 0,
   },
   netBadge: {
     borderRadius: Radius.sm,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
+    maxWidth: 120,
+    minWidth: 56,
   },
   netAmount: {
     fontSize: FontSize.sm,
     fontWeight: FontWeight.bold,
+    textAlign: 'center',
   },
   chevron: {
-    marginLeft: 2,
+    marginLeft: 4,
   },
 });

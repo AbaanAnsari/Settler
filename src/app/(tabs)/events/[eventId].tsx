@@ -99,8 +99,12 @@ export default function EventDetailScreen() {
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.topBarCenter}>
-          <Text style={[styles.eventName, { color: colors.text }]} numberOfLines={1}>{event.name}</Text>
-          <Text style={[styles.eventDate, { color: colors.textMuted }]}>{formatDate(event.date)}</Text>
+          <Text style={[styles.eventName, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+            {event.name}
+          </Text>
+          <Text style={[styles.eventDate, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
+            {formatDate(event.date)}
+          </Text>
         </View>
         <View style={{ width: 40 }} />
       </View>
@@ -108,17 +112,65 @@ export default function EventDetailScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Stats row */}
         <View style={styles.statsRow}>
-          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statValue, { color: colors.text }]} adjustsFontSizeToFit numberOfLines={1}>{formatCurrency(total)}</Text>
-            <Text style={[styles.statLabel, { color: colors.textMuted }]} adjustsFontSizeToFit numberOfLines={1}>Total</Text>
+          <View style={[styles.statCard, styles.statCardFirst, { backgroundColor: colors.surface }]}>
+            <Text
+              style={[styles.statValue, { color: colors.text }]}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              minimumFontScale={0.8}
+            >
+              {formatCurrency(total)}
+            </Text>
+            <Text
+              style={[styles.statLabel, { color: colors.textMuted }]}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              minimumFontScale={0.85}
+            >
+              Total
+            </Text>
+          </View>
+          <View style={[styles.statCard, styles.statCardMid, { backgroundColor: colors.surface }]}>
+            <Text
+              style={[styles.statValue, { color: colors.text }]}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              minimumFontScale={0.8}
+            >
+              {participants.length}
+            </Text>
+            <Text
+              style={[styles.statLabel, { color: colors.textMuted }]}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              minimumFontScale={0.85}
+            >
+              People
+            </Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statValue, { color: colors.text }]} adjustsFontSizeToFit numberOfLines={1}>{participants.length}</Text>
-            <Text style={[styles.statLabel, { color: colors.textMuted }]} adjustsFontSizeToFit numberOfLines={1}>People</Text>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statValue, { color: colors.text }]} adjustsFontSizeToFit numberOfLines={1}>{formatCurrency(participants.length > 0 ? total / participants.length : 0)}</Text>
-            <Text style={[styles.statLabel, { color: colors.textMuted }]} adjustsFontSizeToFit numberOfLines={1}>Per person</Text>
+            <Text
+              style={[styles.statValue, { color: colors.text }]}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              minimumFontScale={0.75}
+            >
+              {formatCurrency(participants.length > 0 ? total / participants.length : 0)}
+            </Text>
+            <Text
+              style={[styles.statLabel, { color: colors.textMuted }]}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              minimumFontScale={0.85}
+            >
+              Per person
+            </Text>
           </View>
         </View>
 
@@ -131,7 +183,9 @@ export default function EventDetailScreen() {
 
         {/* Expense Ledger */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Expense Entries</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+            Expense Entries
+          </Text>
           <View style={[styles.ledgerCard, { backgroundColor: colors.surface }]}>
             {sortedExpenses.length === 0 ? (
               <EmptyState
@@ -191,7 +245,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
   },
   backBtn: { width: 40, height: 40, alignItems: 'flex-start', justifyContent: 'center' },
-  topBarCenter: { flex: 1, alignItems: 'center' },
+  topBarCenter: { flex: 1, minWidth: 0, alignItems: 'center', paddingHorizontal: Spacing.xs },
   eventName: { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   eventDate: { fontSize: FontSize.xs, marginTop: 2 },
   scrollContent: { paddingBottom: Spacing.xl },
@@ -199,19 +253,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginHorizontal: Spacing.md,
     marginVertical: Spacing.md,
-    gap: Spacing.sm,
   },
   statCard: {
     flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
   },
-  statValue: { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  statLabel: { fontSize: FontSize.xs },
+  statCardFirst: {
+    marginRight: Spacing.sm,
+  },
+  statCardMid: {
+    marginRight: Spacing.sm,
+  },
+  statValue: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, marginBottom: 4, textAlign: 'center' },
+  statLabel: { fontSize: FontSize.xs, textAlign: 'center' },
   section: { marginHorizontal: Spacing.md, marginBottom: Spacing.md },
   sectionTitle: {
     fontSize: FontSize.md,

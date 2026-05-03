@@ -115,7 +115,7 @@ export const TransactionForm = memo(function TransactionForm({ personId, onSubmi
 });
 
 const styles = StyleSheet.create({
-  container: { gap: Spacing.sm },
+  container: {},
   toggleRow: {
     flexDirection: 'row',
     borderRadius: Radius.md,
@@ -137,6 +137,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginTop: 4,
+    marginBottom: 4,
   },
   input: {
     borderRadius: Radius.md,
@@ -144,16 +145,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 4,
     fontSize: FontSize.md,
-    marginBottom: 2,
+    marginBottom: Spacing.sm,
   },
-  actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
+  actions: { flexDirection: 'row', marginTop: Spacing.sm },
   cancelBtn: {
-    flex: 1, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
+    flex: 1,
+    minWidth: 0,
+    marginRight: Spacing.sm,
+    paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
     alignItems: 'center',
   },
   cancelText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold },
   submitBtn: {
-    flex: 2, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
+    flex: 2,
+    minWidth: 0,
+    paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
     alignItems: 'center',
   },
   submitDisabled: { opacity: 0.4 },

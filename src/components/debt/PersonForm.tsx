@@ -69,9 +69,7 @@ export const PersonForm = memo(function PersonForm({ onSubmit, onCancel, initial
 });
 
 const styles = StyleSheet.create({
-  container: {
-    gap: Spacing.sm,
-  },
+  container: {},
   label: {
     fontSize: FontSize.sm,
     fontWeight: FontWeight.semibold,
@@ -89,11 +87,12 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
-    gap: Spacing.sm,
     marginTop: Spacing.sm,
   },
   cancelBtn: {
     flex: 1,
+    minWidth: 0,
+    marginRight: Spacing.sm,
     paddingVertical: Spacing.sm + 4,
     borderRadius: Radius.md,
     alignItems: 'center',
@@ -104,6 +103,7 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     flex: 2,
+    minWidth: 0,
     paddingVertical: Spacing.sm + 4,
     borderRadius: Radius.md,
     alignItems: 'center',

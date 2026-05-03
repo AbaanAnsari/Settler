@@ -109,13 +109,25 @@ export default function PersonLedgerScreen() {
     txSheetRef.current?.expand();
   }, []);
 
+  const confirmDeleteTransaction = useCallback((tx: Transaction) => {
+    Alert.alert(
+      'Delete',
+      'Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => { void deleteTransaction(tx.id); } },
+      ]
+    );
+  }, [deleteTransaction]);
+
   const renderItem = useCallback(({ item, index }: { item: TransactionWithBalance; index: number }) => (
     <TransactionRow
       tx={item}
       onPress={() => openEditTx(item)}
+      onLongPress={() => confirmDeleteTransaction(item)}
       isLast={index === filtered.length - 1}
     />
-  ), [filtered.length, openEditTx]);
+  ), [filtered.length, openEditTx, confirmDeleteTransaction]);
 
   if (!person) {
     return (
@@ -138,26 +150,66 @@ export default function PersonLedgerScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.personName, { color: colors.text }]}>{person.name}</Text>
+        <Text style={[styles.personName, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+          {person.name}
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
       {/* Hero */}
       <View style={styles.hero}>
-        <Text style={[styles.netLabel, { color: colors.textSecondary }]}>
+        <Text
+          style={[styles.netLabel, { color: colors.textSecondary }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {net === 0 ? 'All settled up' : netPositive ? 'Owes you' : 'You owe'}
         </Text>
-        <Text style={[styles.netAmount, { color: netPositive ? colors.positive : colors.negative }]}>
+        <Text
+          style={[styles.netAmount, { color: netPositive ? colors.positive : colors.negative }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}
+        >
           {net === 0 ? '₹0' : formatCurrency(Math.abs(net))}
         </Text>
         <View style={styles.heroRow}>
           <View style={[styles.heroStat, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.heroStatLabel, { color: colors.textSecondary }]}>You get</Text>
-            <Text style={[styles.heroStatValue, { color: colors.positive }]}>{formatCurrency(youGet)}</Text>
+            <Text
+              style={[styles.heroStatLabel, { color: colors.textSecondary }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              You get
+            </Text>
+            <Text
+              style={[styles.heroStatValue, { color: colors.positive }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+            >
+              {formatCurrency(youGet)}
+            </Text>
           </View>
-          <View style={[styles.heroStat, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.heroStatLabel, { color: colors.textSecondary }]}>You owe</Text>
-            <Text style={[styles.heroStatValue, { color: colors.negative }]}>{formatCurrency(youOwe)}</Text>
+          <View style={[styles.heroStat, styles.heroStatSecond, { backgroundColor: colors.surface }]}>
+            <Text
+              style={[styles.heroStatLabel, { color: colors.textSecondary }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              You owe
+            </Text>
+            <Text
+              style={[styles.heroStatValue, { color: colors.negative }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+            >
+              {formatCurrency(youOwe)}
+            </Text>
           </View>
         </View>
 
@@ -177,24 +229,37 @@ export default function PersonLedgerScreen() {
               style={[styles.filterChip, filter === f && styles.filterChipActive, filter === f && { backgroundColor: colors.accent }]}
               onPress={() => setFilter(f)}
             >
-              <Text style={[styles.filterText, { color: colors.textSecondary }, filter === f && styles.filterTextActive]}>
+              <Text
+                style={[styles.filterText, { color: colors.textSecondary }, filter === f && styles.filterTextActive]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
                 {f === 'all' ? 'All' : f === 'give' ? 'Given' : 'Taken'}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
         <View style={styles.sortRow}>
-          {(['date', 'amount'] as SortType[]).map((s) => (
+          {(['date', 'amount'] as SortType[]).map((s, idx) => (
             <TouchableOpacity
               key={s}
               style={[
                 styles.sortChip,
+                idx === 0 && { marginRight: Spacing.sm },
                 { borderColor: colors.surfaceBorder },
                 sort === s && { backgroundColor: colors.surfaceElevated, borderColor: colors.accentDark },
               ]}
               onPress={() => setSort(s)}
             >
-              <Text style={[styles.sortText, { color: colors.textSecondary }, sort === s && { color: colors.accentLight }]}>
+              <Text
+                style={[styles.sortText, { color: colors.textSecondary }, sort === s && { color: colors.accentLight }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
                 {s === 'date' ? 'Recent first' : 'Amount high'}
               </Text>
             </TouchableOpacity>
@@ -287,15 +352,21 @@ const styles = StyleSheet.create({
   },
   heroRow: {
     flexDirection: 'row',
-    gap: Spacing.sm,
     marginTop: Spacing.sm,
+    alignSelf: 'stretch',
+    paddingHorizontal: Spacing.md,
   },
   heroStat: {
     flex: 1,
+    minWidth: 72,
+    flexShrink: 1,
     borderRadius: Radius.md,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     alignItems: 'center',
+  },
+  heroStatSecond: {
+    marginLeft: Spacing.sm,
   },
   heroStatLabel: {
     fontSize: FontSize.xs,
@@ -330,11 +401,11 @@ const styles = StyleSheet.create({
   },
   sortRow: {
     flexDirection: 'row',
-    gap: Spacing.sm,
     marginTop: Spacing.sm,
   },
   filterChip: {
     flex: 1,
+    minWidth: 0,
     alignItems: 'center',
     paddingVertical: 6,
   },
@@ -349,6 +420,7 @@ const styles = StyleSheet.create({
   },
   sortChip: {
     flex: 1,
+    minWidth: 0,
     alignItems: 'center',
     borderRadius: Radius.sm,
     borderWidth: 1,

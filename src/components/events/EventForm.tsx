@@ -70,24 +70,29 @@ export const EventForm = memo(function EventForm({ onSubmit, onCancel, initial }
 });
 
 const styles = StyleSheet.create({
-  container: { gap: Spacing.sm },
+  container: {},
   label: {
     fontSize: FontSize.xs, fontWeight: FontWeight.semibold,
-    textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 4,
+    textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 4, marginBottom: 4,
   },
   input: {
     borderRadius: Radius.md, borderWidth: 1,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 4, fontSize: FontSize.md, marginBottom: 2,
+    paddingVertical: Spacing.sm + 4, fontSize: FontSize.md, marginBottom: Spacing.sm,
   },
-  actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
+  actions: { flexDirection: 'row', marginTop: Spacing.sm },
   cancelBtn: {
-    flex: 1, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
+    flex: 1,
+    minWidth: 0,
+    marginRight: Spacing.sm,
+    paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
     alignItems: 'center',
   },
   cancelText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold },
   submitBtn: {
-    flex: 2, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
+    flex: 2,
+    minWidth: 0,
+    paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
     alignItems: 'center',
   },
   disabled: { opacity: 0.4 },

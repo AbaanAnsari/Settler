@@ -22,9 +22,19 @@ export const SummaryCard = memo(function SummaryCard({ summaries, total }: Summa
   return (
     <View style={[styles.card, { backgroundColor: colors.surface }]}>
       <View style={[styles.header, { borderBottomColor: colors.separator }]}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Balance Summary</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+          Balance Summary
+        </Text>
         <View style={styles.totalBadge}>
-          <Text style={[styles.totalText, { color: colors.accentLight }]}>Total {formatCurrency(total)}</Text>
+          <Text
+            style={[styles.totalText, { color: colors.accentLight }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
+            Total {formatCurrency(total)}
+          </Text>
         </View>
       </View>
 
@@ -34,16 +44,32 @@ export const SummaryCard = memo(function SummaryCard({ summaries, total }: Summa
         return (
           <View key={s.personName} style={[styles.row, { borderBottomColor: colors.separator }]}>
             <View style={[styles.avatar, { backgroundColor: color + '28' }]}>
-              <Text style={[styles.avatarText, { color }]}>
+              <Text style={[styles.avatarText, { color }]} numberOfLines={1} ellipsizeMode="tail">
                 {s.personName.charAt(0).toUpperCase()}
               </Text>
             </View>
             <View style={styles.info}>
-              <Text style={[styles.name, { color: colors.text }]}>{s.personName}</Text>
-              <Text style={[styles.paid, { color: colors.textMuted }]}>Paid {formatCurrency(s.totalPaid)} · Share {formatCurrency(s.equalShare)}</Text>
+              <Text style={[styles.name, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+                {s.personName}
+              </Text>
+              <Text
+                style={[styles.paid, { color: colors.textMuted }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
+                Paid {formatCurrency(s.totalPaid)} · Share {formatCurrency(s.equalShare)}
+              </Text>
             </View>
             <View style={[styles.netBadge, { backgroundColor: isPositive ? colors.positiveBg : colors.negativeBg }]}>
-              <Text style={[styles.netText, { color: isPositive ? colors.positive : colors.negative }]}>
+              <Text
+                style={[styles.netText, { color: isPositive ? colors.positive : colors.negative }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
                 {s.net === 0 ? 'Settled' : (isPositive ? '+' : '') + formatCurrency(s.net)}
               </Text>
             </View>
@@ -69,35 +95,62 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
+    flex: 1,
+    minWidth: 0,
+    marginRight: Spacing.sm,
   },
   totalBadge: {
     backgroundColor: 'rgba(124, 111, 247, 0.12)',
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
+    flexShrink: 0,
+    maxWidth: '55%',
   },
   totalText: {
     fontSize: FontSize.xs,
     fontWeight: FontWeight.semibold,
+    textAlign: 'right',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
-    gap: Spacing.sm,
     borderBottomWidth: 1,
   },
   avatar: {
-    width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.sm,
+    flexShrink: 0,
   },
   avatarText: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  info: { flex: 1, gap: 3 },
-  name: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold },
+  info: {
+    flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
+    marginRight: Spacing.sm,
+  },
+  name: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
+    marginBottom: 3,
+  },
   paid: { fontSize: FontSize.xs },
   netBadge: {
     borderRadius: Radius.sm,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
+    flexShrink: 0,
+    minWidth: 64,
+    maxWidth: 120,
   },
-  netText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  netText: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold,
+    textAlign: 'center',
+  },
 });

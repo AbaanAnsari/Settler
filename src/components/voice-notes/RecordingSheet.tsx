@@ -87,9 +87,19 @@ export function RecordingSheet({ onSave, onCancel }: RecordingSheetProps) {
             color={recorded ? colors.positive : colors.textMuted}
           />
         )}
-        <Text style={[styles.timer, { color: colors.text }]}>{formatDur(duration)}</Text>
-        {isRecording && <Text style={[styles.recordingLabel, { color: colors.negative }]}>Recording...</Text>}
-        {recorded && !isRecording && <Text style={[styles.doneLabel, { color: colors.positive }]}>Recording complete</Text>}
+        <Text style={[styles.timer, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+          {formatDur(duration)}
+        </Text>
+        {isRecording && (
+          <Text style={[styles.recordingLabel, { color: colors.negative }]} numberOfLines={1} ellipsizeMode="tail">
+            Recording...
+          </Text>
+        )}
+        {recorded && !isRecording && (
+          <Text style={[styles.doneLabel, { color: colors.positive }]} numberOfLines={1} ellipsizeMode="tail">
+            Recording complete
+          </Text>
+        )}
       </View>
 
       {/* Record / Stop button */}
@@ -106,7 +116,9 @@ export function RecordingSheet({ onSave, onCancel }: RecordingSheetProps) {
           size={28}
           color="#fff"
         />
-        <Text style={styles.recordBtnText}>{isRecording ? 'Stop' : 'Record'}</Text>
+        <Text style={[styles.recordBtnText, styles.recordBtnLabel]} numberOfLines={1} ellipsizeMode="tail">
+          {isRecording ? 'Stop' : 'Record'}
+        </Text>
       </TouchableOpacity>
 
       {/* Title */}
@@ -126,17 +138,24 @@ export function RecordingSheet({ onSave, onCancel }: RecordingSheetProps) {
           {/* Tag */}
           <Text style={[styles.label, { color: colors.textSecondary }]}>Tag</Text>
           <View style={styles.tagRow}>
-            {TAGS.map((t) => (
+            {TAGS.map((t, idx) => (
               <TouchableOpacity
                 key={t}
                 style={[
                   styles.tagChip,
+                  idx < TAGS.length - 1 && styles.tagChipSpacing,
                   { backgroundColor: colors.surfaceBorder },
                   tag === t && { backgroundColor: colors.accent },
                 ]}
                 onPress={() => setTag(t)}
               >
-                <Text style={[styles.tagChipText, { color: colors.textSecondary }, tag === t && styles.tagChipTextActive]}>{t}</Text>
+                <Text
+                  style={[styles.tagChipText, { color: colors.textSecondary }, tag === t && styles.tagChipTextActive]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {t}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -163,28 +182,36 @@ export function RecordingSheet({ onSave, onCancel }: RecordingSheetProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: Spacing.sm, alignItems: 'stretch' },
+  container: { alignItems: 'stretch' },
   visualizer: {
     alignItems: 'center',
     paddingVertical: Spacing.lg,
-    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
   },
   recordingDot: {
     width: 60, height: 60, borderRadius: 30,
+    marginBottom: Spacing.sm,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6, shadowRadius: 16, elevation: 8,
   },
-  timer: { fontSize: FontSize.xxxl, fontWeight: FontWeight.bold, fontVariant: ['tabular-nums'] },
-  recordingLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  doneLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
+  timer: {
+    fontSize: FontSize.xxxl,
+    fontWeight: FontWeight.bold,
+    fontVariant: ['tabular-nums'],
+    marginTop: Spacing.sm,
+  },
+  recordingLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.medium, marginTop: Spacing.sm },
+  doneLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.medium, marginTop: Spacing.sm },
   recordBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     borderRadius: Radius.full,
     paddingVertical: Spacing.md, marginHorizontal: Spacing.lg,
+    marginTop: Spacing.sm,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4, shadowRadius: 10, elevation: 6,
   },
   recordBtnText: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: '#fff' },
+  recordBtnLabel: { marginLeft: Spacing.sm, flexShrink: 1, minWidth: 0 },
   label: {
     fontSize: FontSize.xs, fontWeight: FontWeight.semibold,
     textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 4,
@@ -194,16 +221,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 4, fontSize: FontSize.md,
   },
-  tagRow: { flexDirection: 'row', gap: Spacing.sm },
+  tagRow: { flexDirection: 'row', marginTop: Spacing.xs },
   tagChip: {
-    flex: 1, paddingVertical: Spacing.sm, borderRadius: Radius.md,
+    flex: 1,
+    minWidth: 0,
+    paddingVertical: Spacing.sm, borderRadius: Radius.md,
     alignItems: 'center',
+  },
+  tagChipSpacing: {
+    marginRight: Spacing.sm,
   },
   tagChipText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold },
   tagChipTextActive: { color: '#fff' },
-  actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
+  actions: { flexDirection: 'row', marginTop: Spacing.sm },
   cancelBtn: {
-    flex: 1, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
+    flex: 1,
+    minWidth: 0,
+    marginRight: Spacing.sm,
+    paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
     alignItems: 'center',
   },
   cancelBtnSolo: {
@@ -212,7 +247,9 @@ const styles = StyleSheet.create({
   },
   cancelText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold },
   saveBtn: {
-    flex: 2, paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
+    flex: 2,
+    minWidth: 0,
+    paddingVertical: Spacing.sm + 4, borderRadius: Radius.md,
     alignItems: 'center',
   },
   saveText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: '#fff' },

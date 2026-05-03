@@ -1,14 +1,14 @@
 import BottomSheetLib from '@gorhom/bottom-sheet';
 import { router } from 'expo-router';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventCard } from '../../../components/events/EventCard';
 import { EventForm } from '../../../components/events/EventForm';
 import BottomSheet from '../../../components/ui/BottomSheet';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { FAB } from '../../../components/ui/FAB';
-import { useEventStore } from '../../../store/eventStore';
+import { type Event, useEventStore } from '../../../store/eventStore';
 import { computeEventSummary } from '../../../utils/balanceCalc';
 import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../../utils/colors';
 
@@ -18,6 +18,7 @@ export default function EventsScreen() {
   const events = useEventStore((state) => state.events);
   const expenses = useEventStore((state) => state.expenses);
   const addEvent = useEventStore((state) => state.addEvent);
+  const deleteEvent = useEventStore((state) => state.deleteEvent);
   const sheetRef = useRef<BottomSheetLib>(null);
   const [formKey, setFormKey] = useState(0);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -35,7 +36,18 @@ export default function EventsScreen() {
     sheetRef.current?.close();
   }, [addEvent]);
 
-  const renderItem = useCallback(({ item }: { item: any }) => {
+  const confirmDeleteEvent = useCallback((ev: Event) => {
+    Alert.alert(
+      'Delete',
+      `Delete "${ev.name}"? All expenses for this event will be removed.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => { void deleteEvent(ev.id); } },
+      ]
+    );
+  }, [deleteEvent]);
+
+  const renderItem = useCallback(({ item }: { item: Event }) => {
     const itemExpenses = expenses.filter((e) => e.eventId === item.id);
     const { total, participants } = computeEventSummary(itemExpenses);
     return (
@@ -44,17 +56,22 @@ export default function EventsScreen() {
         total={total}
         participantCount={participants.length}
         onPress={() => router.push(`/events/${item.id}`)}
+        onLongPress={() => confirmDeleteEvent(item)}
       />
     );
-  }, [expenses]);
+  }, [expenses, confirmDeleteEvent]);
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <Text style={[styles.title, { color: colors.text }]}>Events</Text>
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+            Events
+          </Text>
           <View style={[styles.countBadge, { backgroundColor: colors.surfaceElevated }]}>
-            <Text style={[styles.countText, { color: colors.text }]}>{events.length}</Text>
+            <Text style={[styles.countText, { color: colors.text }]} numberOfLines={1}>
+              {events.length}
+            </Text>
           </View>
         </View>
       </View>
@@ -105,12 +122,12 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.sm,
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: Spacing.sm,
   },
   title: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold },
   subtitle: { fontSize: FontSize.sm },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  headerRow: { flexDirection: 'row', alignItems: 'center' },
   countBadge: {
+    marginLeft: Spacing.sm,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: Radius.full,

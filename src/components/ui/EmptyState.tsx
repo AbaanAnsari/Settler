@@ -17,8 +17,14 @@ export function EmptyState({ icon = 'inbox-outline', title, subtitle, children }
       <View style={[styles.iconWrap, { backgroundColor: colors.surfaceElevated }]}>
         <MaterialCommunityIcons name={icon} size={52} color={colors.textMuted} />
       </View>
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-      {subtitle ? <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text> : null}
+      <Text style={[styles.title, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
+        {title}
+      </Text>
+      {subtitle ? (
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={3} ellipsizeMode="tail">
+          {subtitle}
+        </Text>
+      ) : null}
       {children}
     </View>
   );
@@ -31,7 +37,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.xxl,
-    gap: Spacing.sm,
   },
   iconWrap: {
     width: 96,
@@ -45,10 +50,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: FontWeight.semibold,
     textAlign: 'center',
+    marginBottom: Spacing.sm,
   },
   subtitle: {
     fontSize: FontSize.sm,
     textAlign: 'center',
     lineHeight: 20,
+    marginTop: Spacing.xs,
   },
 });

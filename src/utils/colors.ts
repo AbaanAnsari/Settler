@@ -24,7 +24,7 @@ export const DarkColors = {
   // Text
   text: '#F1F5F9',
   textSecondary: '#94A3B8',
-  textMuted: '#475569',
+  textMuted: '#64748B',
   textInverse: '#0D0D14',
 
   // UI

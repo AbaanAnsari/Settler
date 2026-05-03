@@ -28,16 +28,30 @@ export const ExpenseRow = memo(function ExpenseRow({ expense, onPress, isLast }:
       activeOpacity={0.7}
     >
       <View style={[styles.avatar, { backgroundColor: color + '28' }]}>
-        <Text style={[styles.avatarText, { color }]}>
+        <Text style={[styles.avatarText, { color }]} numberOfLines={1} ellipsizeMode="tail">
           {expense.personName.charAt(0).toUpperCase()}
         </Text>
       </View>
       <View style={styles.info}>
-        <Text style={[styles.person, { color: colors.text }]}>{expense.personName}</Text>
-        <Text style={[styles.reason, { color: colors.textSecondary }]} numberOfLines={1}>{expense.reason}</Text>
-        <Text style={[styles.date, { color: colors.textMuted }]}>{formatDate(expense.date)}</Text>
+        <Text style={[styles.person, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+          {expense.personName}
+        </Text>
+        <Text style={[styles.reason, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+          {expense.reason}
+        </Text>
+        <Text style={[styles.date, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
+          {formatDate(expense.date)}
+        </Text>
       </View>
-      <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(expense.amount)}</Text>
+      <Text
+        style={[styles.amount, { color: colors.text }]}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
+      >
+        {formatCurrency(expense.amount)}
+      </Text>
     </TouchableOpacity>
   );
 });
@@ -49,7 +63,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm + 4,
     paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
-    gap: Spacing.sm,
   },
   lastRow: { borderBottomWidth: 0 },
   avatar: {
@@ -58,14 +71,31 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: Spacing.sm,
+    flexShrink: 0,
   },
   avatarText: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.bold,
   },
-  info: { flex: 1, gap: 3 },
-  person: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold },
-  reason: { fontSize: FontSize.xs },
+  info: {
+    flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
+    marginRight: Spacing.sm,
+  },
+  person: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
+    marginBottom: 3,
+  },
+  reason: { fontSize: FontSize.xs, marginBottom: 3 },
   date: { fontSize: FontSize.xs },
-  amount: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  amount: {
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.bold,
+    flexShrink: 0,
+    minWidth: 72,
+    textAlign: 'right',
+  },
 });

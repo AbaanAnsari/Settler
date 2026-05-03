@@ -49,7 +49,7 @@ export function FAB({ onPress, label = 'Add', icon = 'plus', style }: FABProps) 
       activeOpacity={1}
     >
       <MaterialCommunityIcons name={icon} size={20} color="#fff" />
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? <Text style={[styles.label, styles.labelSpacing]} numberOfLines={1} ellipsizeMode="tail">{label}</Text> : null}
     </AnimatedTouchable>
   );
 }
@@ -63,7 +63,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm + 4,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs + 2,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -75,5 +74,10 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
     letterSpacing: 0.2,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  labelSpacing: {
+    marginLeft: Spacing.xs + 2,
   },
 });
