@@ -1,9 +1,9 @@
-import React, { useState, useRef, memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Pressable, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
-import { formatDuration, formatRelativeDate } from '../../utils/formatting';
+import React, { memo, useRef, useState } from 'react';
+import { Alert, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { VoiceNote, VoiceNoteTag } from '../../store/voiceNoteStore';
+import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
+import { formatDuration, formatRelativeDate } from '../../utils/formatting';
 
 interface VoiceNoteCardProps {
   note: VoiceNote;

@@ -1,8 +1,8 @@
 import React, { memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
-import { formatCurrency, formatDateShort } from '../../utils/formatting';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { TransactionWithBalance } from '../../utils/balanceCalc';
+import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
+import { formatCurrency, formatDateShort } from '../../utils/formatting';
 
 interface TransactionRowProps {
   tx: TransactionWithBalance;

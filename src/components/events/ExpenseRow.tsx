@@ -1,8 +1,8 @@
 import React, { memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Spacing, FontSize, FontWeight, useThemeColors } from '../../utils/colors';
-import { formatCurrency, formatDate } from '../../utils/formatting';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Expense } from '../../store/eventStore';
+import { FontSize, FontWeight, Spacing, useThemeColors } from '../../utils/colors';
+import { formatCurrency, formatDate } from '../../utils/formatting';
 
 interface ExpenseRowProps {
   expense: Expense;

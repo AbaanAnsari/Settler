@@ -1,8 +1,8 @@
 import React, { memo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
-import { formatCurrency } from '../../utils/formatting';
+import { StyleSheet, Text, View } from 'react-native';
 import type { PersonEventSummary } from '../../utils/balanceCalc';
+import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
+import { formatCurrency } from '../../utils/formatting';
 
 interface SummaryCardProps {
   summaries: PersonEventSummary[];

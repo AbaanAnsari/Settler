@@ -1,8 +1,8 @@
-import React, { useState, useEffect, memo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Keyboard } from 'react-native';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
+import React, { memo, useEffect, useState } from 'react';
+import { Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Expense } from '../../store/eventStore';
+import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
 import { DateField } from '../ui/DateField';
 
 interface ExpenseFormProps {

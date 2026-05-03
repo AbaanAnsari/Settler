@@ -1,10 +1,10 @@
-import React, { memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Spacing, FontSize, FontWeight, Radius, useThemeColors } from '../../utils/colors';
-import { formatCurrency } from '../../utils/formatting';
-import { computePersonBalance } from '../../utils/balanceCalc';
+import React, { memo } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Person, Transaction } from '../../store/debtStore';
+import { computePersonBalance } from '../../utils/balanceCalc';
+import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
+import { formatCurrency } from '../../utils/formatting';
 
 interface PersonCardProps {
   person: Person;
