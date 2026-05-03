@@ -77,14 +77,6 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="debt/[personId]"
-        options={{ href: null }}
-      />
-      <Tabs.Screen
-        name="events/[eventId]"
-        options={{ href: null }}
-      />
     </Tabs>
   );
 }

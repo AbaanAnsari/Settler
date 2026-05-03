@@ -67,9 +67,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <BottomSheetModalProvider>
           <StatusBar style={themeName === 'light' ? 'dark' : 'light'} translucent backgroundColor="transparent" />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          </Stack>
+          <Stack screenOptions={{ headerShown: false }} />
         </BottomSheetModalProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

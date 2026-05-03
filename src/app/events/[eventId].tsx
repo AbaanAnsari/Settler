@@ -3,6 +3,7 @@ import BottomSheetLib from '@gorhom/bottom-sheet';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  Alert,
   BackHandler,
   ScrollView,
   StyleSheet,
@@ -12,17 +13,17 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
-import { ExpenseForm } from '../../../components/events/ExpenseForm';
-import { ExpenseRow } from '../../../components/events/ExpenseRow';
-import { SummaryCard } from '../../../components/events/SummaryCard';
-import BottomSheet from '../../../components/ui/BottomSheet';
-import { EmptyState } from '../../../components/ui/EmptyState';
-import { FAB } from '../../../components/ui/FAB';
-import { Expense, useEventStore } from '../../../store/eventStore';
-import { selectEventExpenses } from '../../../store/selectors';
-import { computeEventSummary } from '../../../utils/balanceCalc';
-import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../../utils/colors';
-import { formatCurrency, formatDate } from '../../../utils/formatting';
+import { ExpenseForm } from '../../components/events/ExpenseForm';
+import { ExpenseRow } from '../../components/events/ExpenseRow';
+import { SummaryCard } from '../../components/events/SummaryCard';
+import BottomSheet from '../../components/ui/BottomSheet';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { FAB } from '../../components/ui/FAB';
+import { Expense, useEventStore } from '../../store/eventStore';
+import { selectEventExpenses } from '../../store/selectors';
+import { computeEventSummary } from '../../utils/balanceCalc';
+import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
+import { formatCurrency, formatDate } from '../../utils/formatting';
 
 export default function EventDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -32,6 +33,7 @@ export default function EventDetailScreen() {
   const events = useEventStore((state) => state.events);
   const addExpense = useEventStore((state) => state.addExpense);
   const updateExpense = useEventStore((state) => state.updateExpense);
+  const deleteExpense = useEventStore((state) => state.deleteExpense);
 
   const event = events.find((e) => e.id === eventId);
   const expenses = useEventStore(useShallow(selectEventExpenses(eventId ?? '')));
@@ -58,6 +60,27 @@ export default function EventDetailScreen() {
     sheetRef.current?.close();
     setEditingExpense(null);
   }, [editingExpense, updateExpense, addExpense]);
+
+  const confirmDeleteExpense = useCallback((ex: Expense) => {
+    Alert.alert(
+      'Delete',
+      'Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive', 
+          onPress: () => { 
+            void deleteExpense(ex.id);
+            if (editingExpense?.id === ex.id) {
+              sheetRef.current?.close();
+              setEditingExpense(null);
+            }
+          } 
+        },
+      ]
+    );
+  }, [deleteExpense, editingExpense]);
 
   if (!event) {
     return (
@@ -99,10 +122,10 @@ export default function EventDetailScreen() {
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.topBarCenter}>
-          <Text style={[styles.eventName, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+          <Text style={[styles.eventName, { color: colors.text, width: '100%', textAlign: 'center' }]} numberOfLines={2} ellipsizeMode="tail">
             {event.name}
           </Text>
-          <Text style={[styles.eventDate, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
+          <Text style={[styles.eventDate, { color: colors.textMuted, width: '100%', textAlign: 'center' }]}>
             {formatDate(event.date)}
           </Text>
         </View>
@@ -199,6 +222,7 @@ export default function EventDetailScreen() {
                   key={expense.id}
                   expense={expense}
                   onPress={() => openEditExpense(expense)}
+                  onDeletePress={() => confirmDeleteExpense(expense)}
                   isLast={index === sortedExpenses.length - 1}
                 />
               ))

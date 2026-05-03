@@ -55,8 +55,8 @@ export default function EventsScreen() {
         event={item}
         total={total}
         participantCount={participants.length}
-        onPress={() => router.push(`/events/${item.id}`)}
-        onLongPress={() => confirmDeleteEvent(item)}
+        onPress={() => router.push({ pathname: '/events/[eventId]', params: { eventId: item.id } })}
+        onDeletePress={() => confirmDeleteEvent(item)}
       />
     );
   }, [expenses, confirmDeleteEvent]);

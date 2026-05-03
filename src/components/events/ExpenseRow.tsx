@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { memo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Expense } from '../../store/eventStore';
@@ -7,6 +8,7 @@ import { formatCurrency, formatDate } from '../../utils/formatting';
 interface ExpenseRowProps {
   expense: Expense;
   onPress: () => void;
+  onDeletePress?: () => void;
   isLast?: boolean;
 }
 
@@ -18,25 +20,26 @@ function getAvatarColor(name: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-export const ExpenseRow = memo(function ExpenseRow({ expense, onPress, isLast }: ExpenseRowProps) {
+export const ExpenseRow = memo(function ExpenseRow({ expense, onPress, onDeletePress, isLast }: ExpenseRowProps) {
   const colors = useThemeColors();
   const color = getAvatarColor(expense.personName);
   return (
-    <TouchableOpacity
-      style={[styles.row, { borderBottomColor: colors.separator }, isLast && styles.lastRow]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <View style={[styles.avatar, { backgroundColor: color + '28' }]}>
+    <View style={[styles.row, { borderBottomColor: colors.separator }, isLast && styles.lastRow]}>
+      <TouchableOpacity
+        style={styles.contentArea}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        <View style={[styles.avatar, { backgroundColor: color + '28' }]}>
         <Text style={[styles.avatarText, { color }]} numberOfLines={1} ellipsizeMode="tail">
           {expense.personName.charAt(0).toUpperCase()}
         </Text>
       </View>
       <View style={styles.info}>
-        <Text style={[styles.person, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+        <Text style={[styles.person, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
           {expense.personName}
         </Text>
-        <Text style={[styles.reason, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+        <Text style={[styles.reason, { color: colors.textSecondary }]} numberOfLines={2} ellipsizeMode="tail">
           {expense.reason}
         </Text>
         <Text style={[styles.date, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
@@ -52,7 +55,14 @@ export const ExpenseRow = memo(function ExpenseRow({ expense, onPress, isLast }:
       >
         {formatCurrency(expense.amount)}
       </Text>
-    </TouchableOpacity>
+      </TouchableOpacity>
+
+      {onDeletePress && (
+        <TouchableOpacity style={styles.trashBtn} onPress={onDeletePress} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel="Delete expense">
+          <MaterialCommunityIcons name="trash-can-outline" size={20} color={colors.textMuted} />
+        </TouchableOpacity>
+      )}
+    </View>
   );
 });
 
@@ -60,9 +70,14 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+    borderBottomWidth: 1,
+  },
+  contentArea: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: Spacing.sm + 4,
     paddingHorizontal: Spacing.md,
-    borderBottomWidth: 1,
   },
   lastRow: { borderBottomWidth: 0 },
   avatar: {
@@ -97,5 +112,10 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     minWidth: 72,
     textAlign: 'right',
+  },
+  trashBtn: {
+    padding: Spacing.md,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

@@ -10,22 +10,21 @@ interface PersonCardProps {
   person: Person;
   transactions: Transaction[];
   onPress: () => void;
-  onLongPress?: () => void;
+  onDeletePress?: () => void;
 }
 
-export const PersonCard = memo(function PersonCard({ person, transactions, onPress, onLongPress }: PersonCardProps) {
+export const PersonCard = memo(function PersonCard({ person, transactions, onPress, onDeletePress }: PersonCardProps) {
   const colors = useThemeColors();
   const { net, youGet, youOwe } = computePersonBalance(transactions);
   const isPositive = net >= 0;
 
   return (
-    <TouchableOpacity
-      style={[styles.card, { backgroundColor: colors.surface }]}
-      onPress={onPress}
-      onLongPress={onLongPress}
-      delayLongPress={450}
-      activeOpacity={0.75}
-    >
+    <View style={[styles.card, { backgroundColor: colors.surface }]}>
+      <TouchableOpacity
+        style={styles.contentArea}
+        onPress={onPress}
+        activeOpacity={0.75}
+      >
       {/* Left: Avatar + Name */}
       <View style={[styles.avatar, { backgroundColor: person.color + '28' }]}>
         <Text style={[styles.avatarText, { color: person.color }]} numberOfLines={1} ellipsizeMode="tail">
@@ -34,7 +33,7 @@ export const PersonCard = memo(function PersonCard({ person, transactions, onPre
       </View>
 
       <View style={styles.info}>
-        <Text style={[styles.name, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+        <Text style={[styles.name, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
           {person.name}
         </Text>
         <View style={styles.subRow}>
@@ -69,21 +68,25 @@ export const PersonCard = memo(function PersonCard({ person, transactions, onPre
       </View>
 
       {/* Right: Net balance */}
-      <View style={styles.netWrap}>
-        <View style={[styles.netBadge, { backgroundColor: isPositive ? colors.positiveBg : colors.negativeBg }]}>
-          <Text
-            style={[styles.netAmount, { color: isPositive ? colors.positive : colors.negative }]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            adjustsFontSizeToFit
-            minimumFontScale={0.85}
-          >
-            {net === 0 ? 'Settled' : (isPositive ? '+' : '-') + formatCurrency(Math.abs(net))}
-          </Text>
-        </View>
-        <MaterialCommunityIcons name="chevron-right" size={18} color={colors.textMuted} style={styles.chevron} />
+      <View style={[styles.netBadge, { backgroundColor: isPositive ? colors.positiveBg : colors.negativeBg }]}>
+        <Text
+          style={[styles.netAmount, { color: isPositive ? colors.positive : colors.negative }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
+        >
+          {net === 0 ? 'Settled' : (isPositive ? '+' : '-') + formatCurrency(Math.abs(net))}
+        </Text>
       </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+
+      {onDeletePress && (
+        <TouchableOpacity style={styles.trashBtn} onPress={onDeletePress} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel="Delete person">
+          <MaterialCommunityIcons name="trash-can-outline" size={20} color={colors.textMuted} />
+        </TouchableOpacity>
+      )}
+    </View>
   );
 });
 
@@ -92,9 +95,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: Radius.lg,
-    padding: Spacing.md,
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.sm,
+    overflow: 'hidden',
+  },
+  contentArea: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
   },
   avatar: {
     width: 48,
@@ -139,24 +148,21 @@ const styles = StyleSheet.create({
   noTx: {
     fontSize: FontSize.xs,
   },
-  netWrap: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexShrink: 0,
-  },
   netBadge: {
     borderRadius: Radius.sm,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
-    maxWidth: 120,
     minWidth: 56,
+    flexShrink: 0,
   },
   netAmount: {
     fontSize: FontSize.sm,
     fontWeight: FontWeight.bold,
     textAlign: 'center',
   },
-  chevron: {
-    marginLeft: 4,
+  trashBtn: {
+    padding: Spacing.md,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

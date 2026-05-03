@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { memo, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { VoiceNote, VoiceNoteTag } from '../../store/voiceNoteStore';
 import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
 import { formatDuration, formatRelativeDate } from '../../utils/formatting';
@@ -36,7 +36,7 @@ export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDeleteConfirm
     }
   }
 
-  function handleLongPressDelete() {
+  function handleDelete() {
     Alert.alert(
       'Delete',
       'Are you sure?',
@@ -56,11 +56,7 @@ export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDeleteConfirm
   const activeTagStyle = note.tag ? tagStyle[note.tag] : null;
 
   return (
-    <Pressable
-      onLongPress={handleLongPressDelete}
-      delayLongPress={450}
-      style={[styles.card, { backgroundColor: colors.surface }]}
-    >
+    <View style={[styles.card, { backgroundColor: colors.surface }]}>
       {/* Play button */}
       <TouchableOpacity style={styles.playBtn} onPress={handlePlayPause}>
         <MaterialCommunityIcons
@@ -91,7 +87,7 @@ export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDeleteConfirm
         <View style={styles.meta}>
           <Text
             style={[styles.title, { color: colors.text }]}
-            numberOfLines={1}
+            numberOfLines={2}
             ellipsizeMode="tail"
             adjustsFontSizeToFit
             minimumFontScale={0.9}
@@ -119,7 +115,11 @@ export const VoiceNoteCard = memo(function VoiceNoteCard({ note, onDeleteConfirm
           </View>
         </View>
       </View>
-    </Pressable>
+
+      <TouchableOpacity style={styles.trashBtn} onPress={handleDelete} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel="Delete voice note">
+        <MaterialCommunityIcons name="trash-can-outline" size={20} color={colors.textMuted} />
+      </TouchableOpacity>
+    </View>
   );
 });
 
@@ -200,5 +200,10 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 10,
     fontWeight: FontWeight.semibold,
+  },
+  trashBtn: {
+    paddingLeft: Spacing.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

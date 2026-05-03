@@ -11,16 +11,16 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
-import { TransactionForm } from '../../../components/debt/TransactionForm';
-import { TransactionRow } from '../../../components/debt/TransactionRow';
-import BottomSheet from '../../../components/ui/BottomSheet';
-import { EmptyState } from '../../../components/ui/EmptyState';
-import { FAB } from '../../../components/ui/FAB';
-import { Transaction, useDebtStore } from '../../../store/debtStore';
-import { selectPersonTransactions } from '../../../store/selectors';
-import { computePersonBalance, computeRunningBalance, TransactionWithBalance } from '../../../utils/balanceCalc';
-import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../../utils/colors';
-import { formatCurrency } from '../../../utils/formatting';
+import { TransactionForm } from '../../components/debt/TransactionForm';
+import { TransactionRow } from '../../components/debt/TransactionRow';
+import BottomSheet from '../../components/ui/BottomSheet';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { FAB } from '../../components/ui/FAB';
+import { Transaction, useDebtStore } from '../../store/debtStore';
+import { selectPersonTransactions } from '../../store/selectors';
+import { computePersonBalance, computeRunningBalance, TransactionWithBalance } from '../../utils/balanceCalc';
+import { FontSize, FontWeight, Radius, Spacing, useThemeColors } from '../../utils/colors';
+import { formatCurrency } from '../../utils/formatting';
 
 type FilterType = 'all' | 'give' | 'take';
 type SortType = 'date' | 'amount';
@@ -124,7 +124,7 @@ export default function PersonLedgerScreen() {
     <TransactionRow
       tx={item}
       onPress={() => openEditTx(item)}
-      onLongPress={() => confirmDeleteTransaction(item)}
+      onDeletePress={() => confirmDeleteTransaction(item)}
       isLast={index === filtered.length - 1}
     />
   ), [filtered.length, openEditTx, confirmDeleteTransaction]);
@@ -150,7 +150,7 @@ export default function PersonLedgerScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.personName, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+        <Text style={[styles.personName, { color: colors.text, flex: 1, minWidth: 0, textAlign: 'center' }]} numberOfLines={2} ellipsizeMode="tail">
           {person.name}
         </Text>
         <View style={{ width: 40 }} />
@@ -159,9 +159,7 @@ export default function PersonLedgerScreen() {
       {/* Hero */}
       <View style={styles.hero}>
         <Text
-          style={[styles.netLabel, { color: colors.textSecondary }]}
-          numberOfLines={1}
-          ellipsizeMode="tail"
+          style={[styles.netLabel, { color: colors.textSecondary, textAlign: 'center' }]}
         >
           {net === 0 ? 'All settled up' : netPositive ? 'Owes you' : 'You owe'}
         </Text>
@@ -177,9 +175,7 @@ export default function PersonLedgerScreen() {
         <View style={styles.heroRow}>
           <View style={[styles.heroStat, { backgroundColor: colors.surface }]}>
             <Text
-              style={[styles.heroStatLabel, { color: colors.textSecondary }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
+              style={[styles.heroStatLabel, { color: colors.textSecondary, textAlign: 'center' }]}
             >
               You get
             </Text>
@@ -195,9 +191,7 @@ export default function PersonLedgerScreen() {
           </View>
           <View style={[styles.heroStat, styles.heroStatSecond, { backgroundColor: colors.surface }]}>
             <Text
-              style={[styles.heroStatLabel, { color: colors.textSecondary }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
+              style={[styles.heroStatLabel, { color: colors.textSecondary, textAlign: 'center' }]}
             >
               You owe
             </Text>
@@ -342,6 +336,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: Spacing.xl,
     paddingBottom: Spacing.lg,
+    paddingHorizontal: Spacing.md,
   },
   netLabel: {
     fontSize: FontSize.sm,
@@ -362,7 +357,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     borderRadius: Radius.md,
     paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: Spacing.sm,
     alignItems: 'center',
   },
   heroStatSecond: {

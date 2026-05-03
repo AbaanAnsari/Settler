@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     marginRight: Spacing.xs,
     marginBottom: Spacing.xs,
   },
-  chipText: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, maxWidth: 140 },
+  chipText: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, flexShrink: 1 },
   actions: { flexDirection: 'row', marginTop: Spacing.sm },
   cancelBtn: {
     flex: 1,

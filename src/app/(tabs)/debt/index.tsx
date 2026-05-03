@@ -68,8 +68,8 @@ export default function DebtScreen() {
     <PersonCard
       person={item}
       transactions={transactions.filter((t) => t.personId === item.id)}
-      onPress={() => router.push(`/debt/${item.id}`)}
-      onLongPress={() => confirmDeletePerson(item)}
+      onPress={() => router.push({ pathname: '/debt/[personId]', params: { personId: item.id } })}
+      onDeletePress={() => confirmDeletePerson(item)}
     />
   ), [transactions, confirmDeletePerson]);
 

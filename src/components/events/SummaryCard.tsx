@@ -49,12 +49,12 @@ export const SummaryCard = memo(function SummaryCard({ summaries, total }: Summa
               </Text>
             </View>
             <View style={styles.info}>
-              <Text style={[styles.name, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+              <Text style={[styles.name, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
                 {s.personName}
               </Text>
               <Text
                 style={[styles.paid, { color: colors.textMuted }]}
-                numberOfLines={1}
+                numberOfLines={2}
                 ellipsizeMode="tail"
                 adjustsFontSizeToFit
                 minimumFontScale={0.85}
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     flexShrink: 0,
-    maxWidth: '55%',
+    maxWidth: '72%',
   },
   totalText: {
     fontSize: FontSize.xs,
@@ -145,8 +145,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     flexShrink: 0,
-    minWidth: 64,
-    maxWidth: 120,
+    minWidth: 72,
   },
   netText: {
     fontSize: FontSize.sm,

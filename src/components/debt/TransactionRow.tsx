@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { memo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { TransactionWithBalance } from '../../utils/balanceCalc';
@@ -7,23 +8,22 @@ import { formatCurrency, formatDateShort } from '../../utils/formatting';
 interface TransactionRowProps {
   tx: TransactionWithBalance;
   onPress: () => void;
-  onLongPress?: () => void;
+  onDeletePress?: () => void;
   isLast?: boolean;
 }
 
-export const TransactionRow = memo(function TransactionRow({ tx, onPress, onLongPress, isLast }: TransactionRowProps) {
+export const TransactionRow = memo(function TransactionRow({ tx, onPress, onDeletePress, isLast }: TransactionRowProps) {
   const colors = useThemeColors();
   const isGive = tx.type === 'give';
   const balancePositive = tx.runningBalance >= 0;
 
   return (
-    <TouchableOpacity
-      style={[styles.row, { borderBottomColor: colors.separator }, isLast && styles.lastRow]}
-      onPress={onPress}
-      onLongPress={onLongPress}
-      delayLongPress={450}
-      activeOpacity={0.7}
-    >
+    <View style={[styles.row, { borderBottomColor: colors.separator }, isLast && styles.lastRow]}>
+      <TouchableOpacity
+        style={styles.contentArea}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
       {/* Type indicator pill */}
       <View style={[styles.typePill, { backgroundColor: isGive ? colors.positiveBg : colors.negativeBg }]}>
         <Text
@@ -37,7 +37,7 @@ export const TransactionRow = memo(function TransactionRow({ tx, onPress, onLong
 
       {/* Description + Date */}
       <View style={styles.middle}>
-        <Text style={[styles.description, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+        <Text style={[styles.description, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
           {tx.description}
         </Text>
         <Text style={[styles.date, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
@@ -66,7 +66,14 @@ export const TransactionRow = memo(function TransactionRow({ tx, onPress, onLong
           Bal: {balancePositive ? '' : '-'}{formatCurrency(Math.abs(tx.runningBalance))}
         </Text>
       </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+
+      {onDeletePress && (
+        <TouchableOpacity style={styles.trashBtn} onPress={onDeletePress} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel="Delete transaction">
+          <MaterialCommunityIcons name="trash-can-outline" size={20} color={colors.textMuted} />
+        </TouchableOpacity>
+      )}
+    </View>
   );
 });
 
@@ -74,9 +81,14 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+    borderBottomWidth: 1,
+  },
+  contentArea: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: Spacing.sm + 4,
     paddingHorizontal: Spacing.md,
-    borderBottomWidth: 1,
   },
   lastRow: {
     borderBottomWidth: 0,
@@ -112,7 +124,7 @@ const styles = StyleSheet.create({
   right: {
     alignItems: 'flex-end',
     flexShrink: 0,
-    minWidth: 72,
+    minWidth: 56,
   },
   amount: {
     fontSize: FontSize.md,
@@ -122,5 +134,10 @@ const styles = StyleSheet.create({
   balance: {
     fontSize: FontSize.xs,
     fontWeight: FontWeight.medium,
+  },
+  trashBtn: {
+    padding: Spacing.md,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
