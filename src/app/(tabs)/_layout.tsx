@@ -67,16 +67,6 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="voice-notes/index"
-        options={{
-          title: 'Voice Notes',
-          tabBarLabel: 'Voice',
-          tabBarIcon: ({ focused, color }) => (
-            <TabBarIcon name="mic" nameOutline="mic" focused={focused} color={color} />
-          ),
-        }}
-      />
     </Tabs>
   );
 }

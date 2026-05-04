@@ -10,7 +10,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { getDb } from '../database/db';
 import { useDebtStore } from '../store/debtStore';
 import { useEventStore } from '../store/eventStore';
-import { useVoiceNoteStore } from '../store/voiceNoteStore';
 import { useThemeColors, useThemeName } from '../utils/colors';
 
 SplashScreen.preventAutoHideAsync();
@@ -24,20 +23,17 @@ export default function RootLayout() {
   const loadEvent = useEventStore((s) => s.loadFromDb);
   const eventLoaded = useEventStore((s) => s.isLoaded);
 
-  const loadVoice = useVoiceNoteStore((s) => s.loadFromDb);
-  const voiceLoaded = useVoiceNoteStore((s) => s.isLoaded);
-
   useEffect(() => {
     async function init() {
       try {
         await getDb();
-        await Promise.all([loadDebt(), loadEvent(), loadVoice()]);
+        await Promise.all([loadDebt(), loadEvent()]);
       } catch (e) {
         console.error('Init error:', e);
       }
     }
     init();
-  }, [loadDebt, loadEvent, loadVoice]);
+  }, [loadDebt, loadEvent]);
 
   useEffect(() => {
     setBackgroundColorAsync(colors.background).catch((e) => {
@@ -47,14 +43,14 @@ export default function RootLayout() {
 
   useEffect(() => {
     async function hide() {
-      if (debtLoaded && eventLoaded && voiceLoaded) {
+      if (debtLoaded && eventLoaded) {
         await SplashScreen.hideAsync();
       }
     }
     hide();
-  }, [debtLoaded, eventLoaded, voiceLoaded]);
+  }, [debtLoaded, eventLoaded]);
 
-  if (!debtLoaded || !eventLoaded || !voiceLoaded) {
+  if (!debtLoaded || !eventLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color={colors.accent} />

@@ -51,15 +51,6 @@ async function initDb(database: SQLite.SQLiteDatabase) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_expenses_eventId ON expenses(eventId);
-
-    CREATE TABLE IF NOT EXISTS voice_notes (
-      id TEXT PRIMARY KEY NOT NULL,
-      fileUri TEXT NOT NULL,
-      duration REAL NOT NULL,
-      title TEXT NOT NULL,
-      date TEXT NOT NULL,
-      tag TEXT
-    );
   `);
  
 }

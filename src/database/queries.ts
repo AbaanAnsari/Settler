@@ -1,7 +1,6 @@
 import { getDb } from './db';
 import type { Person, Transaction } from '../store/debtStore';
 import type { Event, Expense } from '../store/eventStore';
-import type { VoiceNote } from '../store/voiceNoteStore';
 
 // --- DEBT ---
 
@@ -110,33 +109,4 @@ export async function updateExpenseDb(id: string, updates: Partial<Expense>): Pr
 export async function deleteExpenseDb(id: string): Promise<void> {
   const db = await getDb();
   await db.runAsync('DELETE FROM expenses WHERE id = ?', id);
-}
-
-// --- VOICE NOTES ---
-
-export async function getVoiceNotesFromDb(): Promise<VoiceNote[]> {
-  const db = await getDb();
-  return await db.getAllAsync<VoiceNote>('SELECT * FROM voice_notes');
-}
-
-export async function insertVoiceNoteDb(note: VoiceNote): Promise<void> {
-  const db = await getDb();
-  await db.runAsync(
-    'INSERT INTO voice_notes (id, fileUri, duration, title, date, tag) VALUES (?, ?, ?, ?, ?, ?)',
-    note.id, note.fileUri, note.duration, note.title, note.date, note.tag || null
-  );
-}
-
-export async function updateVoiceNoteDb(id: string, updates: Partial<VoiceNote>): Promise<void> {
-  const db = await getDb();
-  const keys = Object.keys(updates);
-  if (keys.length === 0) return;
-  const setString = keys.map(k => `${k} = ?`).join(', ');
-  const values = Object.values(updates);
-  await db.runAsync(`UPDATE voice_notes SET ${setString} WHERE id = ?`, ...values, id);
-}
-
-export async function deleteVoiceNoteDb(id: string): Promise<void> {
-  const db = await getDb();
-  await db.runAsync('DELETE FROM voice_notes WHERE id = ?', id);
 }
